@@ -3,11 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jリーグアウェイ遠征家計簿</title>
+    <title>{{ app_name }}</title>
 </head>
 <body>
-    <h1>Jリーグアウェイ遠征家計簿</h1>
-    <p>遠征費を記録して使いすぎを防ぐためのアプリです。</p>
-    <p>まずはFlaskの基本を学習中です。</p>
+    <h1>{{ app_name }}</h1>
+    <p>{{ description }}</p>
+
+    <h2>記録できる支出カテゴリ</h2>
+    <ul>
+        {% for expense in expenses %}
+            <li>{{ expense }}</li>
+        {% endfor %}
+    </ul>
 </body>
 </html>

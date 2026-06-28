@@ -5,7 +5,22 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    app_name = "Jリーグアウェイ遠征家計簿"
+    description = "遠征にかかった費用を記録・管理するアプリです。"
+
+    expenses = [
+        "交通費",
+        "宿泊費",
+        "チケット代",
+        "食費"
+    ]
+
+    return render_template(
+        "index.html",
+        app_name=app_name,
+        description=description,
+        expenses=expenses
+    ) 
 
 
 @app.route("/about")
