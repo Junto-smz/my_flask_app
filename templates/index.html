@@ -10,11 +10,19 @@
     <p>{{ description }}</p>
 
     <h2>支出一覧</h2>
-    <ul>
-        {% for expense in expenses %}
-            <li>{{ expense.name }}：{{ expense.amount }}円</li>
-        {% endfor %}
-    </ul>
+    <table border="1">
+        <tr>
+            <th>カテゴリ</th>
+            <th>金額</th>
+            </tr>
+            {%for expense in expenses %}
+                <tr>
+                    <td>{{ expense.name}}</td>
+                    <td>{{ expense.amount}}円</td>
+                </tr>
+            {% endfor%}
+            
+            </table>
     <p>合計金額:{{total_amount}}円</p>
 </body>
 </html>
