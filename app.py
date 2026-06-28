@@ -1,16 +1,16 @@
-from flask import Flask
+from flask import Flask,render_template
 
 app = Flask(__name__)
 
 
 @app.route("/")
 def index():
-    return "Hello, Flask!"
+    return render_template("index.html")
 
 
 @app.route("/about")
 def about():
-    return "このアプリはJリーグアウェイ遠征の支出を管理する家計簿アプリです。"
+    return render_template("about.html")
 
 @app.route("/hello/<name>")
 def hello_name(name):
