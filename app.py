@@ -34,5 +34,9 @@ def about():
 def hello_name(name):
     return f"こんにちは、{name}さん！"
 
+@app.route("/expenses/new")
+def new_expense():
+    return render_template("new_expense.html")
+
 if __name__ == "__main__":
     app.run(debug=True)
