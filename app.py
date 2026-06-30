@@ -52,5 +52,15 @@ def new_expense():
        return redirect(url_for("index"))
    return render_template("new_expense.html")
 
+@app.route("/expenses/<int:expense_id>/delete",methods=["POST"])
+def delete_expense(expense_id):
+    with sqlite3.connect(DATABASE) as conn:
+        conn.execute(
+            """DELETE FROM expenses 
+            WHERE id = ?""",
+            (expense_id,)
+        )
+    return redirect(url_for("index"))
+
 if __name__ == "__main__":
     app.run(debug=True)
