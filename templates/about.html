@@ -1,13 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>このアプリについて</title>
-</head>
-<body>
-    <h1>このアプリについて</h1>
-    <p>このアプリは、Jリーグのアウェイ遠征にかかった費用を管理するための家計簿アプリです。</p>
-    <p>交通費、宿泊費、チケット代、食費などを記録できるようにしていく予定です。</p>
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}アプリ説明{% endblock %}
+
+{% block content %}
+    <h2>アプリ説明</h2>
+
+    <p>
+        このアプリは、Jリーグのアウェイ遠征でかかった費用を記録・管理するための家計簿アプリです。
+    </p>
+{% endblock %}
