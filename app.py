@@ -9,12 +9,13 @@ def index():
     app_name = "Jリーグアウェイ遠征家計簿"
     description = "遠征にかかった費用を記録・管理するアプリです。"
 
-    expenses = [
-        {"name": "交通費", "amount": 12000},
-        {"name": "宿泊費", "amount": 8000},
-        {"name": "チケット代", "amount": 3500},
-        {"name": "食費", "amount": 2500}
-    ]
+    with sqlite3.connect(DATABASE) as conn:
+        conn.row_factory = sqlite3.Row
+        expenses = conn.execute(
+            """SELECT id,name,amount
+            FROM expenses
+            ORDER by id DESC"""
+        ).fetchall()
     total_amount = 0
     for expense in expenses:
         total_amount += expense["amount"]
