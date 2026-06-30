@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Jリーグアウェイ遠征家計簿{% endblock %}</title>
+</head>
+<body>
+    <header>
+        <h1>Jリーグアウェイ遠征家計簿</h1>
+        <nav>
+            <a href="{{ url_for('index') }}">トップ</a>
+            <a href="{{ url_for('new_expense') }}">支出登録</a>
+            <a href="{{ url_for('about') }}">アプリ説明</a>
+        </nav>
+        <hr>
+    </header>
+
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+</body>
+</html>
