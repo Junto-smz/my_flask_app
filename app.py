@@ -1,5 +1,5 @@
 import sqlite3
-from flask import Flask,render_template,request
+from flask import Flask,render_template,request,redirect,url_for
 
 app = Flask(__name__)
 DATABASE = "database/database.db"
@@ -49,7 +49,7 @@ def new_expense():
                (name,amount)
            )
        
-       return f"{name}:{amount}円が送信されました"
+       return redirect(url_for("index"))
    return render_template("new_expense.html")
 
 if __name__ == "__main__":
