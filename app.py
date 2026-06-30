@@ -1,7 +1,8 @@
+import sqlite3
 from flask import Flask,render_template,request
 
 app = Flask(__name__)
-
+DATABASE = "database/database.db"
 
 @app.route("/")
 def index():
@@ -38,7 +39,14 @@ def hello_name(name):
 def new_expense():
    if request.method == "POST":
        name = request.form["name"]
-       amount = request.form["amount"]
+       amount = int(request.form["amount"])
+       
+       with sqlite3.connect(DATABASE) as conn:
+           conn.execute(
+               """INSERT INTO expenses (name,amount)
+               VALUES (?,?)""",
+               (name,amount)
+           )
        
        return f"{name}:{amount}円が送信されました"
    return render_template("new_expense.html")
