@@ -1,4 +1,4 @@
-from flask import Flask,render_template
+from flask import Flask,render_template,request
 
 app = Flask(__name__)
 
@@ -34,9 +34,14 @@ def about():
 def hello_name(name):
     return f"こんにちは、{name}さん！"
 
-@app.route("/expenses/new")
+@app.route("/expenses/new",methods = ["GET","POST"])
 def new_expense():
-    return render_template("new_expense.html")
+   if request.method == "POST":
+       name = request.form["name"]
+       amount = request.form["amount"]
+       
+       return f"{name}:{amount}円が送信されました"
+   return render_template("new_expense.html")
 
 if __name__ == "__main__":
     app.run(debug=True)
