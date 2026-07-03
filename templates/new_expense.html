@@ -5,6 +5,10 @@
 {% block content %}
     <h2>支出登録</h2>
 
+    {%if error%}
+        <p>{{error}}</p>
+    {% endif %}
+
     <form method="post">
         <div>
             <label for="name">カテゴリ名</label>

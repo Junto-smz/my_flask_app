@@ -38,19 +38,30 @@ def hello_name(name):
 
 @app.route("/expenses/new",methods = ["GET","POST"])
 def new_expense():
-   if request.method == "POST":
-       name = request.form["name"]
-       amount = int(request.form["amount"])
-       
-       with sqlite3.connect(DATABASE) as conn:
-           conn.execute(
-               """INSERT INTO expenses (name,amount)
-               VALUES (?,?)""",
-               (name,amount)
-           )
-       
-       return redirect(url_for("index"))
-   return render_template("new_expense.html")
+    error = None
+    if request.method == "POST":
+        name = request.form["name"].strip()
+        amount_text = request.form["amount"].strip()
+        
+        if name == "":
+            error = "カテゴリ名を入力してください"
+        elif amount_text =="":
+            error = "金額を入力してください"
+            
+        else:
+            amount = int(amount_text)
+            if amount <= 0:
+                error = "金額は1円以上で入力してください。"
+            else:
+                with sqlite3.connect(DATABASE) as conn:
+                    conn.execute(
+                        """INSERT INTO expenses (name,amount)
+                        VALUES (?,?)""",
+                        (name,amount)
+                    )
+                
+                return redirect(url_for("index"))
+    return render_template("new_expense.html",error = error)
 
 @app.route("/expenses/<int:expense_id>/edit", methods=["GET","POST"])
 def edit_expense(expense_id):
