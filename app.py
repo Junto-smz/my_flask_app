@@ -39,6 +39,8 @@ def hello_name(name):
 @app.route("/expenses/new",methods = ["GET","POST"])
 def new_expense():
     error = None
+    name = ""
+    amount_text = ""
     if request.method == "POST":
         name = request.form["name"].strip()
         amount_text = request.form["amount"].strip()
@@ -61,7 +63,10 @@ def new_expense():
                     )
                 
                 return redirect(url_for("index"))
-    return render_template("new_expense.html",error = error)
+    return render_template("new_expense.html",
+                        error = error,
+                        name = name,
+                        amount_text = amount_text)
 
 @app.route("/expenses/<int:expense_id>/edit", methods=["GET","POST"])
 def edit_expense(expense_id):
