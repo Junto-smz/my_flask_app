@@ -2,6 +2,8 @@ import sqlite3
 from flask import Flask,render_template,request,redirect,url_for
 
 app = Flask(__name__)
+
+
 DATABASE = "database/database.db"
 
 def validate_expense_form(name,amount_text):
@@ -17,6 +19,7 @@ def validate_expense_form(name,amount_text):
         return "金額は1円以上で入力してください",None
     
     return None,amount
+
 
 @app.route("/")
 def index():
@@ -46,9 +49,11 @@ def index():
 def about():
     return render_template("about.html")
 
+
 @app.route("/hello/<name>")
 def hello_name(name):
     return f"こんにちは、{name}さん！"
+
 
 @app.route("/expenses/new",methods = ["GET","POST"])
 def new_expense():
@@ -75,6 +80,7 @@ def new_expense():
                         error = error,
                         name = name,
                         amount_text = amount_text)
+
 
 @app.route("/expenses/<int:expense_id>/edit", methods=["GET","POST"])
 def edit_expense(expense_id):
