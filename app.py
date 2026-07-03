@@ -65,27 +65,41 @@ def new_expense():
 
 @app.route("/expenses/<int:expense_id>/edit", methods=["GET","POST"])
 def edit_expense(expense_id):
-    if request.method == "POST":
-        name = request.form["name"]
-        amount = int(request.form["amount"])
-        
-        with sqlite3.connect(DATABASE) as conn:
-            conn.execute(
-                """UPDATE expenses
-                SET name = ?,amount = ?
-                WHERE id = ?""",
-                (name,amount,expense_id)
-            )
-        return redirect(url_for("index"))
+    error = None
+    
     with sqlite3.connect(DATABASE) as conn:
-        conn.row_factory = sqlite3.Row
-        expense = conn.execute(
-            """SELECT id,name,amount
-            FROM expenses
-            WHERE id = ?""",
-            (expense_id,)
-        ).fetchone()
-    return render_template("edit_expense.html",expense=expense)
+            conn.row_factory = sqlite3.Row
+            expense = conn.execute(
+                """SELECT id,name,amount
+                FROM expenses
+                WHERE id = ?""",
+                (expense_id,)
+            ).fetchone()
+    if request.method == "POST":
+        name = request.form["name"].strip()
+        amount_text = request.form["amount"].strip()
+        
+        if name == "":
+            error = "カテゴリ名を入力してください"
+        elif amount_text == "":
+            error = "金額を入力してください"
+        else:
+            amount = int(amount_text)
+            if amount <= 0:
+                error = "金額は1円以上を入力してください"
+            else:
+                with sqlite3.connect(DATABASE) as conn:
+                    conn.execute(
+                        """UPDATE expenses 
+                        SET name = ?,amount = ? 
+                        WHERE id = ?""",
+                        (name,amount,expense_id)
+                    )
+                return redirect(url_for("index"))
+            
+    return render_template("edit_expense.html",
+                        expense=expense,
+                        error = error)
 
 @app.route("/expenses/<int:expense_id>/delete",methods=["POST"])
 def delete_expense(expense_id):

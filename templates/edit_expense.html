@@ -4,7 +4,10 @@
 
 {% block content %}
     <h2>支出編集</h2>
-
+    {% if error %}
+        <P>{{error}}</P>    
+    {% endif %}
+    
     <form method="post">
         <div>
             <label for="name">カテゴリ名</label>
