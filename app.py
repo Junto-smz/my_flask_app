@@ -4,6 +4,20 @@ from flask import Flask,render_template,request,redirect,url_for
 app = Flask(__name__)
 DATABASE = "database/database.db"
 
+def validate_expense_form(name,amount_text):
+    if name == "":
+        return "カテゴリ名を入力してください",None
+    
+    if amount_text =="":
+        return "金額を入力してください",None
+    
+    amount = int(amount_text)
+    
+    if amount <= 0:
+        return "金額は1円以上で入力してください",None
+    
+    return None,amount
+
 @app.route("/")
 def index():
     app_name = "Jリーグアウェイ遠征家計簿"
@@ -45,25 +59,19 @@ def new_expense():
         name = request.form["name"].strip()
         amount_text = request.form["amount"].strip()
         
-        if name == "":
-            error = "カテゴリ名を入力してください"
-        elif amount_text =="":
-            error = "金額を入力してください"
-            
-        else:
-            amount = int(amount_text)
-            if amount <= 0:
-                error = "金額は1円以上で入力してください。"
-            else:
-                with sqlite3.connect(DATABASE) as conn:
-                    conn.execute(
-                        """INSERT INTO expenses (name,amount)
-                        VALUES (?,?)""",
-                        (name,amount)
-                    )
-                
-                return redirect(url_for("index"))
-    return render_template("new_expense.html",
+        error,amount = validate_expense_form(name,amount_text)
+        
+        if error is None:
+            with sqlite3.connect(DATABASE) as conn:
+                conn.execute(
+                    """INSERT INTO expenses (name,amount)
+                    VALUES (?,?)""",
+                    (name,amount)
+                )
+            return redirect(url_for("index"))
+        
+    return render_template(
+                        "new_expense.html",
                         error = error,
                         name = name,
                         amount_text = amount_text)
@@ -87,25 +95,20 @@ def edit_expense(expense_id):
         name = request.form["name"].strip()
         amount_text = request.form["amount"].strip()
         
-        if name == "":
-            error = "カテゴリ名を入力してください"
-        elif amount_text == "":
-            error = "金額を入力してください"
-        else:
-            amount = int(amount_text)
-            if amount <= 0:
-                error = "金額は1円以上を入力してください"
-            else:
-                with sqlite3.connect(DATABASE) as conn:
-                    conn.execute(
-                        """UPDATE expenses 
-                        SET name = ?,amount = ? 
-                        WHERE id = ?""",
-                        (name,amount,expense_id)
-                    )
+        error,amount = validate_expense_form(name,amount_text)
+        
+        if error is None:
+            with sqlite3.connect(DATABASE) as conn:
+                conn.execute(
+                    """UPDATE expenses
+                    SET name = ?, amount = ?
+                    WHERE id = ?""",
+                    (name,amount,expense_id)
+                )
                 return redirect(url_for("index"))
             
-    return render_template("edit_expense.html",
+    return render_template(
+                        "edit_expense.html",
                         expense=expense,
                         error = error,
                         name = name,
