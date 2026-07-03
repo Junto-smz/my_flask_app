@@ -80,6 +80,9 @@ def edit_expense(expense_id):
                 WHERE id = ?""",
                 (expense_id,)
             ).fetchone()
+            
+    name = expense["name"]
+    amount_text  = str(expense["amount"])
     if request.method == "POST":
         name = request.form["name"].strip()
         amount_text = request.form["amount"].strip()
@@ -104,7 +107,9 @@ def edit_expense(expense_id):
             
     return render_template("edit_expense.html",
                         expense=expense,
-                        error = error)
+                        error = error,
+                        name = name,
+                        amount_text = amount_text)
 
 @app.route("/expenses/<int:expense_id>/delete",methods=["POST"])
 def delete_expense(expense_id):
