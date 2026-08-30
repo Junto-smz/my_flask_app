@@ -6,6 +6,15 @@ app = Flask(__name__)
 
 DATABASE = "database/database.db"
 
+CATEGORIES = [
+    "交通費",
+    "宿泊費",
+    "チケット代",
+    "食費",
+    "グッズ代",
+    "その他",
+]
+
 def validate_expense_form(name,amount_text):
     if name == "":
         return "カテゴリ名を入力してください",None
@@ -79,7 +88,9 @@ def new_expense():
                         "new_expense.html",
                         error = error,
                         name = name,
-                        amount_text = amount_text)
+                        amount_text = amount_text,
+                        categories = CATEGORIES)
+                        
 
 
 @app.route("/expenses/<int:expense_id>/edit", methods=["GET","POST"])
@@ -118,7 +129,8 @@ def edit_expense(expense_id):
                         expense=expense,
                         error = error,
                         name = name,
-                        amount_text = amount_text)
+                        amount_text = amount_text,
+                        categories = CATEGORIES)
 
 @app.route("/expenses/<int:expense_id>/delete",methods=["POST"])
 def delete_expense(expense_id):
