@@ -59,7 +59,7 @@ label {
     font-weight: bold;
 }
 
-input {
+input,select {
     padding: 8px;
     width: 100%;
     max-width: 300px;
