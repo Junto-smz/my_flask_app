@@ -12,7 +12,14 @@
     <form method="post">
         <div>
             <label for="name">カテゴリ名</label>
-            <input type="text" id="name" name="name" value="{{name}}">
+            <select id="name" name="name">
+                <option value="">選択してください</option>
+                {% for category in categories %}
+                    <option value="{{ category }}" {% if name == category %}selected {% endif %}>
+                        {{ category }}
+                </option>
+            {% endfor %}
+            </select>
         </div>
 
         <div>
