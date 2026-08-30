@@ -9,6 +9,10 @@
     {% endif %}
     
     <form method="post">
+    <div>
+        <label for="spent_on">支出日</label>
+        <input type="date" id="spent_on" name="spent_on" value="{{ spent_on }}">
+    </div>
         <div>
             <label for="name">カテゴリ名</label>
             <select id="name" name="name">
