@@ -15,7 +15,9 @@ CATEGORIES = [
     "その他",
 ]
 
-def validate_expense_form(name,amount_text):
+def validate_expense_form(name,amount_text,spent_on):
+    if spent_on == "":
+        return "支出日を入力してください",None
     if name == "":
         return "カテゴリ名を入力してください",None
     
@@ -38,10 +40,20 @@ def index():
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
         expenses = conn.execute(
-            """SELECT id,name,amount
+            """SELECT id,name,amount,spent_on
             FROM expenses
             ORDER by id DESC"""
         ).fetchall()
+        
+        category_totals = conn.execute(
+            """
+            SELECT name, SUM(amount) AS total
+            FROM expenses
+            GROUP BY name
+            ORDER BY total DESC
+            """
+        ).fetchall()
+        
     total_amount = 0
     for expense in expenses:
         total_amount += expense["amount"]
@@ -50,7 +62,8 @@ def index():
         app_name=app_name,
         description=description,
         expenses=expenses,
-        total_amount = total_amount
+        total_amount = total_amount,
+        category_totals = category_totals
     ) 
 
 
@@ -67,26 +80,29 @@ def hello_name(name):
 @app.route("/expenses/new",methods = ["GET","POST"])
 def new_expense():
     error = None
+    spent_on = ""
     name = ""
     amount_text = ""
     if request.method == "POST":
+        spent_on = request.form["spent_on"].strip()
         name = request.form["name"].strip()
         amount_text = request.form["amount"].strip()
         
-        error,amount = validate_expense_form(name,amount_text)
+        error,amount = validate_expense_form(name,amount_text,spent_on)
         
         if error is None:
             with sqlite3.connect(DATABASE) as conn:
                 conn.execute(
-                    """INSERT INTO expenses (name,amount)
-                    VALUES (?,?)""",
-                    (name,amount)
+                    """INSERT INTO expenses (name,amount,spent_on)
+                    VALUES (?,?,?)""",
+                    (name,amount,spent_on)
                 )
             return redirect(url_for("index"))
         
     return render_template(
                         "new_expense.html",
                         error = error,
+                        spent_on = spent_on,
                         name = name,
                         amount_text = amount_text,
                         categories = CATEGORIES)
@@ -100,27 +116,30 @@ def edit_expense(expense_id):
     with sqlite3.connect(DATABASE) as conn:
             conn.row_factory = sqlite3.Row
             expense = conn.execute(
-                """SELECT id,name,amount
+                """SELECT id,name,amount,spent_on
                 FROM expenses
                 WHERE id = ?""",
                 (expense_id,)
             ).fetchone()
-            
+    
+    spent_on = expense["spent_on"] or ""        
     name = expense["name"]
     amount_text  = str(expense["amount"])
+    
     if request.method == "POST":
+        spent_on = request.form["spent_on"].strip()
         name = request.form["name"].strip()
         amount_text = request.form["amount"].strip()
         
-        error,amount = validate_expense_form(name,amount_text)
+        error,amount = validate_expense_form(name,amount_text,spent_on)
         
         if error is None:
             with sqlite3.connect(DATABASE) as conn:
                 conn.execute(
                     """UPDATE expenses
-                    SET name = ?, amount = ?
+                    SET name = ?, amount = ?, spent_on = ?
                     WHERE id = ?""",
-                    (name,amount,expense_id)
+                    (name,amount,spent_on,expense_id)
                 )
                 return redirect(url_for("index"))
             
@@ -128,6 +147,7 @@ def edit_expense(expense_id):
                         "edit_expense.html",
                         expense=expense,
                         error = error,
+                        spent_on = spent_on,
                         name = name,
                         amount_text = amount_text,
                         categories = CATEGORIES)

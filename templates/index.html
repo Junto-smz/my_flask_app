@@ -8,6 +8,7 @@
     <table border="1">
         <tr>
             <th>ID</th>
+            <th>支出日</th>
             <th>カテゴリ</th>
             <th>金額</th>
             <th>操作</th>
@@ -15,6 +16,7 @@
         {% for expense in expenses %}
             <tr>
                 <td>{{ expense.id }}</td>
+                <td>{{ expense.spent_on or "未設定"}}</td>
                 <td>{{ expense.name }}</td>
                 <td>{{ expense.amount }}円</td>
                 <td>
@@ -29,4 +31,19 @@
     </table>
 
     <p>合計金額：{{ total_amount }}円</p>
+
+
+    <h2>カテゴリ別合計</h2>
+    <table border="1">
+        <tr>
+            <th>カテゴリ</th>
+            <th>合計金額</th>
+        </tr>
+        {% for category_total in category_totals %}
+            <tr>
+                <td>{{ category_total.name }}</td>
+                <td>{{ category_total.total }}円</td>
+            </tr>
+        {% endfor %}
+    </table>
 {% endblock %}
