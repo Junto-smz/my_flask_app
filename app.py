@@ -42,6 +42,16 @@ def index():
             FROM expenses
             ORDER by id DESC"""
         ).fetchall()
+        
+        category_totals = conn.execute(
+            """
+            SELECT name, SUM(amount) AS total
+            FROM expenses
+            GROUP BY name
+            ORDER BY total DESC
+            """
+        ).fetchall()
+        
     total_amount = 0
     for expense in expenses:
         total_amount += expense["amount"]
@@ -50,7 +60,8 @@ def index():
         app_name=app_name,
         description=description,
         expenses=expenses,
-        total_amount = total_amount
+        total_amount = total_amount,
+        category_totals = category_totals
     ) 
 
 
