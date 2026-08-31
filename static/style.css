@@ -59,11 +59,17 @@ label {
     font-weight: bold;
 }
 
-input,select {
+input,
+select
+textarea {
     padding: 8px;
     width: 100%;
     max-width: 300px;
     box-sizing: border-box;
+}
+
+textarea{
+    min-height: 80px;
 }
 
 button {

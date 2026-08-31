@@ -52,6 +52,7 @@
                 <th>支出日</th>
                 <th>カテゴリ</th>
                 <th>金額</th>
+                <th>メモ</th>
                 <th>操作</th>
             </tr>
             {% for expense in expenses %}
@@ -60,6 +61,7 @@
                     <td>{{ expense.spent_on or "未設定"}}</td>
                     <td>{{ expense.name }}</td>
                     <td>{{ expense.amount }}円</td>
+                    <td>{{expense.memo or ""}}</td>
                     <td>
                         <a href="{{ url_for('edit_expense', expense_id=expense.id) }}">編集</a>
 

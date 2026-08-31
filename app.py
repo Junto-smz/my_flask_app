@@ -40,7 +40,7 @@ def index():
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
         expenses = conn.execute(
-            """SELECT id,name,amount,spent_on
+            """SELECT id,name,amount,spent_on, memo
             FROM expenses
             ORDER by id DESC"""
         ).fetchall()
@@ -94,19 +94,21 @@ def new_expense():
     spent_on = ""
     name = ""
     amount_text = ""
+    memo = ""
     if request.method == "POST":
         spent_on = request.form["spent_on"].strip()
         name = request.form["name"].strip()
         amount_text = request.form["amount"].strip()
+        memo = request.form["memo"].strip()
         
         error,amount = validate_expense_form(name,amount_text,spent_on)
         
         if error is None:
             with sqlite3.connect(DATABASE) as conn:
                 conn.execute(
-                    """INSERT INTO expenses (name,amount,spent_on)
-                    VALUES (?,?,?)""",
-                    (name,amount,spent_on)
+                    """INSERT INTO expenses (name, amount, spent_on, memo)
+                    VALUES (?, ?, ?, ?)""",
+                    (name, amount, spent_on, memo)
                 )
             return redirect(url_for("index"))
         
@@ -116,6 +118,7 @@ def new_expense():
                         spent_on = spent_on,
                         name = name,
                         amount_text = amount_text,
+                        memo = memo,
                         categories = CATEGORIES)
                         
 
@@ -127,7 +130,7 @@ def edit_expense(expense_id):
     with sqlite3.connect(DATABASE) as conn:
             conn.row_factory = sqlite3.Row
             expense = conn.execute(
-                """SELECT id,name,amount,spent_on
+                """SELECT id, name, amount, spent_on, memo
                 FROM expenses
                 WHERE id = ?""",
                 (expense_id,)
@@ -136,11 +139,13 @@ def edit_expense(expense_id):
     spent_on = expense["spent_on"] or ""        
     name = expense["name"]
     amount_text  = str(expense["amount"])
+    memo = expense["memo"] or ""
     
     if request.method == "POST":
         spent_on = request.form["spent_on"].strip()
         name = request.form["name"].strip()
         amount_text = request.form["amount"].strip()
+        memo = request.form["memo"].strip()
         
         error,amount = validate_expense_form(name,amount_text,spent_on)
         
@@ -148,9 +153,9 @@ def edit_expense(expense_id):
             with sqlite3.connect(DATABASE) as conn:
                 conn.execute(
                     """UPDATE expenses
-                    SET name = ?, amount = ?, spent_on = ?
+                    SET name = ?, amount = ?, spent_on = ?, memo = ?
                     WHERE id = ?""",
-                    (name,amount,spent_on,expense_id)
+                    (name,amount,spent_on, memo, expense_id)
                 )
                 return redirect(url_for("index"))
             
@@ -161,6 +166,7 @@ def edit_expense(expense_id):
                         spent_on = spent_on,
                         name = name,
                         amount_text = amount_text,
+                        memo = memo,
                         categories = CATEGORIES)
 
 @app.route("/expenses/<int:expense_id>/delete",methods=["POST"])
