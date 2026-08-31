@@ -5,61 +5,72 @@
 {% block content %}
     <p>{{ description }}</p>
 
-    <table border="1">
-        <tr>
-            <th>ID</th>
-            <th>支出日</th>
-            <th>カテゴリ</th>
-            <th>金額</th>
-            <th>操作</th>
-        </tr>
-        {% for expense in expenses %}
-            <tr>
-                <td>{{ expense.id }}</td>
-                <td>{{ expense.spent_on or "未設定"}}</td>
-                <td>{{ expense.name }}</td>
-                <td>{{ expense.amount }}円</td>
-                <td>
-                    <a href="{{ url_for('edit_expense', expense_id=expense.id) }}">編集</a>
+    <h2>サマリー</h2>
+    <p>合計金額：{{total_amount}}円</p>
 
-                    <form method="post" action="{{ url_for('delete_expense', expense_id=expense.id) }}">
-                        <button type="submit">削除</button>
-                    </form>
-                </td>
+    <h2>月別金額</h2>
+    {% if monthly_totals %}
+        <table>
+            <tr>
+                <th>年月</th>
+                <th>合計金額</th>
+            </tr>
+        {% for monthly_total in monthly_totals %}
+            <tr>
+                <td>{{monthly_total.month}}</td>
+                <td>{{monthly_total.total}}</td>
             </tr>
         {% endfor %}
-    </table>
-
-    <p>合計金額：{{ total_amount }}円</p>
-
+        </table>
+    {% else %}
+        <p>日付付きの支出はまだ登録されていません。</p>
+    {% endif %}
 
     <h2>カテゴリ別合計</h2>
+    {% if category_totals %}
     <table border="1">
-        <tr>
-            <th>カテゴリ</th>
-            <th>合計金額</th>
-        </tr>
-        {% for category_total in category_totals %}
             <tr>
-                <td>{{ category_total.name }}</td>
-                <td>{{ category_total.total }}円</td>
+                <th>カテゴリ</th>
+                <th>合計金額</th>
             </tr>
-        {% endfor %}
-    </table>
+            {% for category_total in category_totals %}
+                <tr>
+                    <td>{{ category_total.name }}</td>
+                    <td>{{ category_total.total }}円</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>支出はまだ登録されていません。</p>
+    {% endif %}
 
-    <h2>月別合計</h2>
+    <h2>支出一覧</h2>
+    {% if expenses %}
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>支出日</th>
+                <th>カテゴリ</th>
+                <th>金額</th>
+                <th>操作</th>
+            </tr>
+            {% for expense in expenses %}
+                <tr>
+                    <td>{{ expense.id }}</td>
+                    <td>{{ expense.spent_on or "未設定"}}</td>
+                    <td>{{ expense.name }}</td>
+                    <td>{{ expense.amount }}円</td>
+                    <td>
+                        <a href="{{ url_for('edit_expense', expense_id=expense.id) }}">編集</a>
 
-    <table>
-        <tr>
-            <th>年月</th>
-            <th>合計金額</th>
-        </tr>
-    {% for monthly_total in monthly_totals %}
-        <tr>
-            <td>{{monthly_total.month}}</td>
-            <td>{{monthly_total.total}}</td>
-        </tr>
-    {% endfor %}
-    </table>
-
+                        <form method="post" action="{{ url_for('delete_expense', expense_id=expense.id) }}">
+                            <button type="submit">削除</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>支出はまだ登録されていません。</p>
+    {% endif%}
 {% endblock %}
