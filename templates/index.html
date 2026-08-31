@@ -46,4 +46,20 @@
             </tr>
         {% endfor %}
     </table>
+
+    <h2>月別合計</h2>
+
+    <table>
+        <tr>
+            <th>年月</th>
+            <th>合計金額</th>
+        </tr>
+    {% for monthly_total in monthly_totals %}
+        <tr>
+            <td>{{monthly_total.month}}</td>
+            <td>{{monthly_total.total}}</td>
+        </tr>
+    {% endfor %}
+    </table>
+
 {% endblock %}

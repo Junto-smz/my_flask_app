@@ -54,6 +54,16 @@ def index():
             """
         ).fetchall()
         
+        monthly_totals = conn.execute(
+            """
+            SELECT substr(spent_on, 1, 7) AS month, SUM(amount) AS total
+            FROM expenses
+            WHERE spent_on IS NOT NULL AND spent_on != ''
+            GROUP BY month
+            ORDER BY month DESC
+            """
+        ).fetchall()
+        
     total_amount = 0
     for expense in expenses:
         total_amount += expense["amount"]
@@ -63,7 +73,8 @@ def index():
         description=description,
         expenses=expenses,
         total_amount = total_amount,
-        category_totals = category_totals
+        category_totals = category_totals,
+        monthly_totals = monthly_totals
     ) 
 
 
