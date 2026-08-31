@@ -5,14 +5,14 @@
 {% block content %}
     <h2>支出編集</h2>
     {% if error %}
-        <P class="error">{{error}}</P>    
+        <P class="error">{{error}}</P>
     {% endif %}
-    
+
     <form method="post">
-    <div>
-        <label for="spent_on">支出日</label>
-        <input type="date" id="spent_on" name="spent_on" value="{{ spent_on }}">
-    </div>
+        <div>
+            <label for="spent_on">支出日</label>
+            <input type="date" id="spent_on" name="spent_on" value="{{ spent_on }}">
+        </div>
         <div>
             <label for="name">カテゴリ名</label>
             <select id="name" name="name">

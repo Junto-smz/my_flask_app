@@ -15,12 +15,12 @@
                 <th>年月</th>
                 <th>合計金額</th>
             </tr>
-        {% for monthly_total in monthly_totals %}
-            <tr>
-                <td>{{monthly_total.month}}</td>
-                <td>{{monthly_total.total}}</td>
-            </tr>
-        {% endfor %}
+            {% for monthly_total in monthly_totals %}
+                <tr>
+                    <td>{{monthly_total.month}}</td>
+                    <td>{{monthly_total.total}}</td>
+                </tr>
+            {% endfor %}
         </table>
     {% else %}
         <p>日付付きの支出はまだ登録されていません。</p>
@@ -28,7 +28,7 @@
 
     <h2>カテゴリ別合計</h2>
     {% if category_totals %}
-    <table border="1">
+        <table border="1">
             <tr>
                 <th>カテゴリ</th>
                 <th>合計金額</th>
@@ -74,5 +74,5 @@
         </table>
     {% else %}
         <p>支出はまだ登録されていません。</p>
-    {% endif%}
+    {% endif %}
 {% endblock %}
