@@ -5,7 +5,7 @@
 {% block content %}
     <h2>支出登録</h2>
 
-    {%if error%}
+    {% if error %}
         <p class="error">{{error}}</p>
     {% endif %}
 
@@ -21,8 +21,8 @@
                 {% for category in categories %}
                     <option value="{{ category }}" {% if name == category %}selected {% endif %}>
                         {{ category }}
-                </option>
-            {% endfor %}
+                    </option>
+                {% endfor %}
             </select>
         </div>
 
@@ -31,6 +31,10 @@
             <input type="number" id="amount" name="amount" value="{{amount_text}}">
         </div>
 
+        <div>
+            <label for="memo">メモ</label>
+            <textarea id="memo" name="memo">{{memo}}</textarea>
+        </div>
         <button type="submit">登録</button>
     </form>
 {% endblock %}
