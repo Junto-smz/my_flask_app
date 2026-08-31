@@ -1,5 +1,5 @@
 import sqlite3
-from flask import Flask,render_template,request,redirect,url_for
+from flask import Flask, render_template, request, redirect, url_for
 
 app = Flask(__name__)
 
@@ -15,7 +15,7 @@ CATEGORIES = [
     "その他",
 ]
 
-def validate_expense_form(name,amount_text,spent_on):
+def validate_expense_form(name, amount_text, spent_on):
     if spent_on == "":
         return "支出日を入力してください",None
     if name == "":
