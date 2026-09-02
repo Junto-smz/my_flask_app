@@ -1,9 +1,9 @@
 import sqlite3
 
-from flask import Flask, abort, redirect, render_template, request, url_for
+from flask import Flask, abort, redirect, render_template, request, url_for, flash
 
 app = Flask(__name__)
-
+app.secret_key = "dev-secret-key"
 
 DATABASE = "database/database.db"
 
@@ -119,6 +119,7 @@ def new_expense():
                     VALUES (?, ?, ?, ?)""",
                     (name, amount, spent_on, memo),
                 )
+            flash("支出を登録できました。")
             return redirect(url_for("index"))
 
     return render_template(
@@ -169,6 +170,7 @@ def edit_expense(expense_id):
                     WHERE id = ?""",
                     (name, amount, spent_on, memo, expense_id),
                 )
+            flash("支出を更新しました。")
             return redirect(url_for("index"))
 
     return render_template(
@@ -210,6 +212,7 @@ def delete_expense(expense_id):
             WHERE id = ?""",
             (expense_id,),
         )
+    flash("支出を削除しました。")
     return redirect(url_for("index"))
 
 @app.errorhandler(404)
