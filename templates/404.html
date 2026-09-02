@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}ページが見つかりません{% endblock %}
+
+{% block content %}
+    <h2>ページが見つかりません</h2>
+
+    <p>指定された支出データは存在しないか、すでに削除されています。</p>
+
+    <p>
+        <a href="{{ url_for('index') }}">トップページへ戻る</a>
+    </p>
+{% endblock %}
