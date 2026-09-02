@@ -45,6 +45,24 @@
     {% endif %}
 
     <h2>支出一覧</h2>
+
+    <form method="get" action="{{url_for('index') }}">
+        <label for="category">カテゴリで絞り込み</label>
+        <select id="category" name="category">
+            <option value="">すべて</option>
+            {% for category in categories %}
+                <option value="{{category}}" {% if selecetd_category == category %}selected{% endif %}>
+                    {{category}}
+                </option>
+            {% endfor %}
+        </select>
+        <button type="submit">絞り込み</button>
+</form>
+
+{% if selecetd_category %}
+    <p>現在の絞り込み:{{ selecetd_category }}</p>
+{% endif %}
+
     {% if expenses %}
         <table>
             <tr>

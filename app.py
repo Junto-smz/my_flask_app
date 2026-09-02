@@ -43,14 +43,28 @@ def validate_expense_form(name, amount_text, spent_on):
 def index():
     app_name = "Jリーグアウェイ遠征家計簿"
     description = "遠征にかかった費用を記録・管理するアプリです。"
+    selected_category = request.args.get("category", "")
 
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
-        expenses = conn.execute(
-            """SELECT id, name, amount, spent_on, memo
-            FROM expenses
-            ORDER BY spent_on DESC, id DESC"""
-        ).fetchall()
+        if selected_category:
+            expenses = conn.execute(
+                """
+                SELECT id, name, amount, spent_on, memo
+                FROM expenses
+                WHERE name = ?
+                ORDER BY spent_on DESC, id DESC
+                """,
+                (selected_category,),
+            ).fetchall()
+        else:
+            expenses = conn.execute(
+                """
+                SELECT id, name, amount, spent_on, memo
+                FROM expenses
+                ORDER BY spent_on DESC, id DESC
+                """
+            ).fetchall()
 
         category_totals = conn.execute(
             """
@@ -83,6 +97,8 @@ def index():
         total_amount=total_amount,
         category_totals=category_totals,
         monthly_totals=monthly_totals,
+        categories = CATEGORIES,
+        selected_category = selected_category,
     )
 
 
