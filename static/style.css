@@ -70,6 +70,7 @@ textarea {
 
 textarea{
     min-height: 80px;
+    min-width: 200px;
 }
 
 button {

@@ -42,7 +42,7 @@ def index():
         expenses = conn.execute(
             """SELECT id,name,amount,spent_on, memo
             FROM expenses
-            ORDER by id DESC"""
+            ORDER by spent_on DESC ,id DESC"""
         ).fetchall()
         
         category_totals = conn.execute(

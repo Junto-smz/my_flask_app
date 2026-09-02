@@ -11,4 +11,4 @@ with sqlite3.connect("./database/database.db") as conn:
             )
             """)
     
-    print("データベースを初期化しました")
+    print("データベースを初期化しました。")
