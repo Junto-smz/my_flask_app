@@ -6,20 +6,21 @@
     <h2>支出登録</h2>
 
     {% if error %}
-        <p class="error">{{error}}</p>
+        <p class="error">{{ error }}</p>
     {% endif %}
 
     <form method="post">
         <div>
             <label for="spent_on">支出日</label>
-            <input type="date" id="spent_on" name="spent_on" value="{{ spent_on}}">
+            <input type="date" id="spent_on" name="spent_on" value="{{ spent_on }}">
         </div>
+
         <div>
             <label for="name">カテゴリ名</label>
             <select id="name" name="name">
                 <option value="">選択してください</option>
                 {% for category in categories %}
-                    <option value="{{ category }}" {% if name == category %}selected {% endif %}>
+                    <option value="{{ category }}" {% if name == category %}selected{% endif %}>
                         {{ category }}
                     </option>
                 {% endfor %}
@@ -28,13 +29,14 @@
 
         <div>
             <label for="amount">金額</label>
-            <input type="number" id="amount" name="amount" value="{{amount_text}}">
+            <input type="number" id="amount" name="amount" value="{{ amount_text }}">
         </div>
 
         <div>
             <label for="memo">メモ</label>
-            <textarea id="memo" name="memo">{{memo}}</textarea>
+            <textarea id="memo" name="memo">{{ memo }}</textarea>
         </div>
+
         <button type="submit">登録</button>
     </form>
 {% endblock %}

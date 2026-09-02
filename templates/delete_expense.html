@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}支出削除確認{% endblock %}
+
+{% block content %}
+    <h2>支出削除確認</h2>
+
+    <p>以下の支出を削除しますか？</p>
+
+    <table>
+        <tr>
+            <th>支出日</th>
+            <td>{{ expense.spent_on or "未設定" }}</td>
+        </tr>
+        <tr>
+            <th>カテゴリ</th>
+            <td>{{ expense.name }}</td>
+        </tr>
+        <tr>
+            <th>金額</th>
+            <td>{{ expense.amount | yen }}</td>
+        </tr>
+        <tr>
+            <th>メモ</th>
+            <td>{{ expense.memo or "" }}</td>
+        </tr>
+    </table>
+
+    <form method="post" action="{{ url_for('delete_expense', expense_id=expense.id) }}">
+        <button type="submit">本当に削除する</button>
+    </form>
+
+    <p>
+        <a href="{{ url_for('index') }}">キャンセル</a>
+    </p>
+{% endblock %}

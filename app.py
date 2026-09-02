@@ -1,5 +1,6 @@
 import sqlite3
-from flask import Flask, render_template, request, redirect, url_for
+
+from flask import Flask, abort, redirect, render_template, request, url_for
 
 app = Flask(__name__)
 
@@ -18,23 +19,26 @@ CATEGORIES = [
 
 @app.template_filter("yen")
 def yen_filter(amount):
-    return f'{amount:,}円'
+    return f"{amount:,}円"
+
 
 def validate_expense_form(name, amount_text, spent_on):
     if spent_on == "":
-        return "支出日を入力してください",None
+        return "支出日を入力してください", None
     if name == "":
-        return "カテゴリ名を入力してください",None
-    
-    if amount_text =="":
-        return "金額を入力してください",None
-    
-    amount = int(amount_text)
-    
+        return "カテゴリ名を入力してください", None
+    if amount_text == "":
+        return "金額を入力してください", None
+
+    try:
+        amount = int(amount_text)
+    except ValueError:
+        return "金額は整数で入力してください", None
+
     if amount <= 0:
-        return "金額は1円以上で入力してください",None
-    
-    return None,amount
+        return "金額は1円以上で入力してください", None
+
+    return None, amount
 
 
 @app.route("/")
@@ -45,11 +49,11 @@ def index():
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
         expenses = conn.execute(
-            """SELECT id,name,amount,spent_on, memo
+            """SELECT id, name, amount, spent_on, memo
             FROM expenses
-            ORDER by spent_on DESC ,id DESC"""
+            ORDER BY spent_on DESC, id DESC"""
         ).fetchall()
-        
+
         category_totals = conn.execute(
             """
             SELECT name, SUM(amount) AS total
@@ -58,7 +62,7 @@ def index():
             ORDER BY total DESC
             """
         ).fetchall()
-        
+
         monthly_totals = conn.execute(
             """
             SELECT substr(spent_on, 1, 7) AS month, SUM(amount) AS total
@@ -68,19 +72,20 @@ def index():
             ORDER BY month DESC
             """
         ).fetchall()
-        
+
     total_amount = 0
     for expense in expenses:
         total_amount += expense["amount"]
+
     return render_template(
         "index.html",
         app_name=app_name,
         description=description,
         expenses=expenses,
-        total_amount = total_amount,
-        category_totals = category_totals,
-        monthly_totals = monthly_totals
-    ) 
+        total_amount=total_amount,
+        category_totals=category_totals,
+        monthly_totals=monthly_totals,
+    )
 
 
 @app.route("/about")
@@ -93,96 +98,122 @@ def hello_name(name):
     return f"こんにちは、{name}さん！"
 
 
-@app.route("/expenses/new",methods = ["GET","POST"])
+@app.route("/expenses/new", methods=["GET", "POST"])
 def new_expense():
     error = None
     spent_on = ""
     name = ""
     amount_text = ""
     memo = ""
+
     if request.method == "POST":
         spent_on = request.form["spent_on"].strip()
         name = request.form["name"].strip()
         amount_text = request.form["amount"].strip()
         memo = request.form["memo"].strip()
-        
-        error,amount = validate_expense_form(name,amount_text,spent_on)
-        
+
+        error, amount = validate_expense_form(name, amount_text, spent_on)
+
         if error is None:
             with sqlite3.connect(DATABASE) as conn:
                 conn.execute(
                     """INSERT INTO expenses (name, amount, spent_on, memo)
                     VALUES (?, ?, ?, ?)""",
-                    (name, amount, spent_on, memo)
+                    (name, amount, spent_on, memo),
                 )
             return redirect(url_for("index"))
-        
+
     return render_template(
-                        "new_expense.html",
-                        error = error,
-                        spent_on = spent_on,
-                        name = name,
-                        amount_text = amount_text,
-                        memo = memo,
-                        categories = CATEGORIES)
-                        
+        "new_expense.html",
+        error=error,
+        spent_on=spent_on,
+        name=name,
+        amount_text=amount_text,
+        memo=memo,
+        categories=CATEGORIES,
+    )
 
 
-@app.route("/expenses/<int:expense_id>/edit", methods=["GET","POST"])
+@app.route("/expenses/<int:expense_id>/edit", methods=["GET", "POST"])
 def edit_expense(expense_id):
     error = None
-    
+
     with sqlite3.connect(DATABASE) as conn:
-            conn.row_factory = sqlite3.Row
-            expense = conn.execute(
-                """SELECT id, name, amount, spent_on, memo
-                FROM expenses
-                WHERE id = ?""",
-                (expense_id,)
-            ).fetchone()
-    
-    spent_on = expense["spent_on"] or ""        
+        conn.row_factory = sqlite3.Row
+        expense = conn.execute(
+            """SELECT id, name, amount, spent_on, memo
+            FROM expenses
+            WHERE id = ?""",
+            (expense_id,),
+        ).fetchone()
+
+    if expense is None:
+        abort(404)
+
+    spent_on = expense["spent_on"] or ""
     name = expense["name"]
-    amount_text  = str(expense["amount"])
+    amount_text = str(expense["amount"])
     memo = expense["memo"] or ""
-    
+
     if request.method == "POST":
         spent_on = request.form["spent_on"].strip()
         name = request.form["name"].strip()
         amount_text = request.form["amount"].strip()
         memo = request.form["memo"].strip()
-        
-        error,amount = validate_expense_form(name,amount_text,spent_on)
-        
+
+        error, amount = validate_expense_form(name, amount_text, spent_on)
+
         if error is None:
             with sqlite3.connect(DATABASE) as conn:
                 conn.execute(
                     """UPDATE expenses
                     SET name = ?, amount = ?, spent_on = ?, memo = ?
                     WHERE id = ?""",
-                    (name,amount,spent_on, memo, expense_id)
+                    (name, amount, spent_on, memo, expense_id),
                 )
-                return redirect(url_for("index"))
-            
-    return render_template(
-                        "edit_expense.html",
-                        expense=expense,
-                        error = error,
-                        spent_on = spent_on,
-                        name = name,
-                        amount_text = amount_text,
-                        memo = memo,
-                        categories = CATEGORIES)
+            return redirect(url_for("index"))
 
-@app.route("/expenses/<int:expense_id>/delete",methods=["POST"])
+    return render_template(
+        "edit_expense.html",
+        expense=expense,
+        error=error,
+        spent_on=spent_on,
+        name=name,
+        amount_text=amount_text,
+        memo=memo,
+        categories=CATEGORIES,
+    )
+
+
+@app.route("/expenses/<int:expense_id>/delete", methods=["GET"])
+def confirm_delete_expense(expense_id):
+    with sqlite3.connect(DATABASE) as conn:
+        conn.row_factory = sqlite3.Row
+        expense = conn.execute(
+            """
+            SELECT id, name, amount, spent_on, memo
+            FROM expenses
+            WHERE id = ?
+            """,
+            (expense_id,),
+        ).fetchone()
+
+    if expense is None:
+        abort(404)
+
+    return render_template("delete_expense.html", expense=expense)
+
+
+@app.route("/expenses/<int:expense_id>/delete", methods=["POST"])
 def delete_expense(expense_id):
     with sqlite3.connect(DATABASE) as conn:
         conn.execute(
-            """DELETE FROM expenses 
+            """DELETE FROM expenses
             WHERE id = ?""",
-            (expense_id,)
+            (expense_id,),
         )
     return redirect(url_for("index"))
+
 
 if __name__ == "__main__":
     app.run(debug=True)
