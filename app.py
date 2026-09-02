@@ -1,9 +1,9 @@
 import sqlite3
 
-from flask import Flask, abort, redirect, render_template, request, url_for
+from flask import Flask, abort, redirect, render_template, request, url_for, flash
 
 app = Flask(__name__)
-
+app.secret_key = "dev-secret-key"
 
 DATABASE = "database/database.db"
 
@@ -43,14 +43,28 @@ def validate_expense_form(name, amount_text, spent_on):
 def index():
     app_name = "Jリーグアウェイ遠征家計簿"
     description = "遠征にかかった費用を記録・管理するアプリです。"
+    selected_category = request.args.get("category", "")
 
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
-        expenses = conn.execute(
-            """SELECT id, name, amount, spent_on, memo
-            FROM expenses
-            ORDER BY spent_on DESC, id DESC"""
-        ).fetchall()
+        if selected_category:
+            expenses = conn.execute(
+                """
+                SELECT id, name, amount, spent_on, memo
+                FROM expenses
+                WHERE name = ?
+                ORDER BY spent_on DESC, id DESC
+                """,
+                (selected_category,),
+            ).fetchall()
+        else:
+            expenses = conn.execute(
+                """
+                SELECT id, name, amount, spent_on, memo
+                FROM expenses
+                ORDER BY spent_on DESC, id DESC
+                """
+            ).fetchall()
 
         category_totals = conn.execute(
             """
@@ -83,6 +97,8 @@ def index():
         total_amount=total_amount,
         category_totals=category_totals,
         monthly_totals=monthly_totals,
+        categories = CATEGORIES,
+        selected_category = selected_category,
     )
 
 
@@ -119,6 +135,7 @@ def new_expense():
                     VALUES (?, ?, ?, ?)""",
                     (name, amount, spent_on, memo),
                 )
+            flash("支出を登録できました。")
             return redirect(url_for("index"))
 
     return render_template(
@@ -169,6 +186,7 @@ def edit_expense(expense_id):
                     WHERE id = ?""",
                     (name, amount, spent_on, memo, expense_id),
                 )
+            flash("支出を更新しました。")
             return redirect(url_for("index"))
 
     return render_template(
@@ -210,6 +228,7 @@ def delete_expense(expense_id):
             WHERE id = ?""",
             (expense_id,),
         )
+    flash("支出を削除しました。")
     return redirect(url_for("index"))
 
 @app.errorhandler(404)

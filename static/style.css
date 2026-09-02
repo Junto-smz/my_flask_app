@@ -82,3 +82,10 @@ button {
     color: #cc0000;
     font-weight: bold;
 }
+
+.flash-message {
+    padding: 10px;
+    border: 1px solid #999;
+    border-radius: 4px;
+    background-color: #f5f5f5;
+}
