@@ -15,6 +15,11 @@ CATEGORIES = [
     "その他",
 ]
 
+
+@app.template_filter("yen")
+def yen_filter(amount):
+    return f'{amount:,}円'
+
 def validate_expense_form(name, amount_text, spent_on):
     if spent_on == "":
         return "支出日を入力してください",None
