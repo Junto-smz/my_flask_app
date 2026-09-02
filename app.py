@@ -16,11 +16,9 @@ CATEGORIES = [
     "その他",
 ]
 
-
 @app.template_filter("yen")
 def yen_filter(amount):
-    return f"{amount:,}円"
-
+    return f'{amount:,}円'
 
 def validate_expense_form(name, amount_text, spent_on):
     if spent_on == "":
@@ -195,7 +193,7 @@ def confirm_delete_expense(expense_id):
             FROM expenses
             WHERE id = ?
             """,
-            (expense_id,),
+            (expense_id,)
         ).fetchone()
 
     if expense is None:
