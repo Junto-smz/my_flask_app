@@ -44,27 +44,29 @@ def index():
     app_name = "Jリーグアウェイ遠征家計簿"
     description = "遠征にかかった費用を記録・管理するアプリです。"
     selected_category = request.args.get("category", "")
+    selected_month = request.args.get("month", "")    
 
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
+        query = """
+                    SELECT id, name, amount, spent_on, memo
+                    FROM expenses
+                    WHERE 1=1
+                """
+            
+        params = []
+            
         if selected_category:
-            expenses = conn.execute(
-                """
-                SELECT id, name, amount, spent_on, memo
-                FROM expenses
-                WHERE name = ?
-                ORDER BY spent_on DESC, id DESC
-                """,
-                (selected_category,),
-            ).fetchall()
-        else:
-            expenses = conn.execute(
-                """
-                SELECT id, name, amount, spent_on, memo
-                FROM expenses
-                ORDER BY spent_on DESC, id DESC
-                """
-            ).fetchall()
+                query += " AND name = ?"
+                params.append(selected_category)
+            
+        if selected_month:
+                query += " AND substr(spent_on, 1, 7) = ?"
+                params.append(selected_month)
+                
+        query += " ORDER BY spent_on DESC, id DESC"
+        
+        expenses = conn.execute(query,params).fetchall()
 
         category_totals = conn.execute(
             """
@@ -84,6 +86,15 @@ def index():
             ORDER BY month DESC
             """
         ).fetchall()
+        
+        months = conn.execute(
+            """
+            SELECT DISTINCT substr(spent_on, 1, 7) AS month
+            FROM expenses
+            WHERE spent_on IS NOT NULL AND spent_on != ''
+            ORDER BY month DESC
+            """
+        ).fetchall()
 
     total_amount = 0
     for expense in expenses:
@@ -99,6 +110,8 @@ def index():
         monthly_totals=monthly_totals,
         categories = CATEGORIES,
         selected_category = selected_category,
+        months = months,
+        selected_month = selected_month
     )
 
 

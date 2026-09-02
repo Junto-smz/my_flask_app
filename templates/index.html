@@ -51,18 +51,41 @@
         <select id="category" name="category">
             <option value="">すべて</option>
             {% for category in categories %}
-                <option value="{{category}}" {% if selecetd_category == category %}selected{% endif %}>
+                <option value="{{category}}" {% if selected_category == category %}selected{% endif %}>
                     {{category}}
                 </option>
             {% endfor %}
         </select>
-        <button type="submit">絞り込み</button>
-</form>
 
-{% if selecetd_category %}
-    <p>現在の絞り込み:{{ selecetd_category }}</p>
+        <label for="month">月で絞り込み</label>
+        <select id="month" name="month">
+            <option value="">すべて</option>
+            {% for month in months %}
+                <option value="{{ month.month }}" {% if selected_month == month.month %}selected{% endif %}>
+                    {{month.month}}
+                </option>
+            {% endfor %}
+        </select> 
+
+        <button type="submit">絞り込み</button>
+    </form>
+
+{% if selected_category or selected_month%}
+    <p>現在の絞り込み:
+    {% if selected_category %}
+        カテゴリ_{{ selected_category }}
+    {% endif %}
+    {% if selected_month %}
+        / 月_{{ selected_month }}
+    {% endif %}
+    </p>
 {% endif %}
 
+{% if selected_category or selected_month %}
+    <p>
+        <a href="{{url_for('index') }}">絞り込みを解除</a>
+    </p>
+{% endif %}
     {% if expenses %}
         <table>
             <tr>
