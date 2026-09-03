@@ -16,12 +16,12 @@
         </div>
 
         <div>
-            <label for="name">カテゴリ名</label>
-            <select id="name" name="name">
+            <label for="category">カテゴリ名</label>
+            <select id="category" name="category">
                 <option value="">選択してください</option>
-                {% for category in categories %}
-                    <option value="{{ category }}" {% if name == category %}selected{% endif %}>
-                        {{ category }}
+                {% for category_item in categories %}
+                    <option value="{{ category_item }}" {% if category == category_item %}selected{% endif %}>
+                        {{ category_item }}
                     </option>
                 {% endfor %}
             </select>

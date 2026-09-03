@@ -20,10 +20,10 @@ CATEGORIES = [
 def yen_filter(amount):
     return f'{amount:,}円'
 
-def validate_expense_form(name, amount_text, spent_on):
+def validate_expense_form(category, amount_text, spent_on):
     if spent_on == "":
         return "支出日を入力してください", None
-    if name == "":
+    if category == "":
         return "カテゴリ名を入力してください", None
     if amount_text == "":
         return "金額を入力してください", None
@@ -49,7 +49,7 @@ def index():
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
         query = """
-                    SELECT id, name, amount, spent_on, memo
+                    SELECT id, category, amount, spent_on, memo
                     FROM expenses
                     WHERE 1=1
                 """
@@ -57,7 +57,7 @@ def index():
         params = []
             
         if selected_category:
-                query += " AND name = ?"
+                query += " AND category = ?"
                 params.append(selected_category)
             
         if selected_month:
@@ -70,9 +70,9 @@ def index():
 
         category_totals = conn.execute(
             """
-            SELECT name, SUM(amount) AS total
+            SELECT category, SUM(amount) AS total
             FROM expenses
-            GROUP BY name
+            GROUP BY category
             ORDER BY total DESC
             """
         ).fetchall()
@@ -129,24 +129,24 @@ def hello_name(name):
 def new_expense():
     error = None
     spent_on = ""
-    name = ""
+    category = ""
     amount_text = ""
     memo = ""
 
     if request.method == "POST":
         spent_on = request.form["spent_on"].strip()
-        name = request.form["name"].strip()
+        category = request.form["category"].strip()
         amount_text = request.form["amount"].strip()
         memo = request.form["memo"].strip()
 
-        error, amount = validate_expense_form(name, amount_text, spent_on)
+        error, amount = validate_expense_form(category, amount_text, spent_on)
 
         if error is None:
             with sqlite3.connect(DATABASE) as conn:
                 conn.execute(
-                    """INSERT INTO expenses (name, amount, spent_on, memo)
+                    """INSERT INTO expenses (category, amount, spent_on, memo)
                     VALUES (?, ?, ?, ?)""",
-                    (name, amount, spent_on, memo),
+                    (category, amount, spent_on, memo),
                 )
             flash("支出を登録できました。")
             return redirect(url_for("index"))
@@ -155,7 +155,7 @@ def new_expense():
         "new_expense.html",
         error=error,
         spent_on=spent_on,
-        name=name,
+        category=category,
         amount_text=amount_text,
         memo=memo,
         categories=CATEGORIES,
@@ -169,7 +169,7 @@ def edit_expense(expense_id):
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
         expense = conn.execute(
-            """SELECT id, name, amount, spent_on, memo
+            """SELECT id, category, amount, spent_on, memo
             FROM expenses
             WHERE id = ?""",
             (expense_id,),
@@ -179,25 +179,25 @@ def edit_expense(expense_id):
         abort(404)
 
     spent_on = expense["spent_on"] or ""
-    name = expense["name"]
+    category = expense["category"]
     amount_text = str(expense["amount"])
     memo = expense["memo"] or ""
 
     if request.method == "POST":
         spent_on = request.form["spent_on"].strip()
-        name = request.form["name"].strip()
+        category = request.form["category"].strip()
         amount_text = request.form["amount"].strip()
         memo = request.form["memo"].strip()
 
-        error, amount = validate_expense_form(name, amount_text, spent_on)
+        error, amount = validate_expense_form(category, amount_text, spent_on)
 
         if error is None:
             with sqlite3.connect(DATABASE) as conn:
                 conn.execute(
                     """UPDATE expenses
-                    SET name = ?, amount = ?, spent_on = ?, memo = ?
+                    SET category = ?, amount = ?, spent_on = ?, memo = ?
                     WHERE id = ?""",
-                    (name, amount, spent_on, memo, expense_id),
+                    (category, amount, spent_on, memo, expense_id),
                 )
             flash("支出を更新しました。")
             return redirect(url_for("index"))
@@ -207,7 +207,7 @@ def edit_expense(expense_id):
         expense=expense,
         error=error,
         spent_on=spent_on,
-        name=name,
+        category=category,
         amount_text=amount_text,
         memo=memo,
         categories=CATEGORIES,
@@ -220,7 +220,7 @@ def confirm_delete_expense(expense_id):
         conn.row_factory = sqlite3.Row
         expense = conn.execute(
             """
-            SELECT id, name, amount, spent_on, memo
+            SELECT id, category, amount, spent_on, memo
             FROM expenses
             WHERE id = ?
             """,
