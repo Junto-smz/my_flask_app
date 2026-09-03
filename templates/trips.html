@@ -1,0 +1,35 @@
+{%  extends "base.html" %}
+
+{% block title %}遠征一覧{% endblock %}
+
+{% block content %}
+    <h2>遠征一覧</h2>
+
+    {% if trips %}
+        <table>
+            <thead>
+                <tr>
+                    <th>試合日</th>
+                    <th>遠征名</th>
+                    <th>対戦相手</th>
+                    <th>スタジアム</th>
+                    <th>メモ</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for trip in trips %}
+                    <tr>
+                        <td>{{ trip.match_date }}</td>
+                        <td>{{ trip.title }}</td>
+                        <td>{{ trip.opponent }}</td>
+                        <td>{{ trip.stadium or "" }}</td>
+                        <td>{{ trip.memo or "" }}</td>
+                        
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>遠征はまだ登録されていません。</p>
+    {% endif %}
+{% endblock %}
