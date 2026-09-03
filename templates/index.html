@@ -35,7 +35,7 @@
             </tr>
             {% for category_total in category_totals %}
                 <tr>
-                    <td>{{ category_total.name }}</td>
+                    <td>{{ category_total.category }}</td>
                     <td>{{ category_total.total | yen }}</td>
                 </tr>
             {% endfor %}
@@ -100,7 +100,7 @@
                 <tr>
                     <td>{{ expense.id }}</td>
                     <td>{{ expense.spent_on or "未設定" }}</td>
-                    <td>{{ expense.name }}</td>
+                    <td>{{ expense.category }}</td>
                     <td>{{ expense.amount | yen }}</td>
                     <td>{{ expense.memo or "" }}</td>
                     <td>
