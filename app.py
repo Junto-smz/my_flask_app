@@ -119,6 +119,22 @@ def index():
 def about():
     return render_template("about.html")
 
+@app.route("/trips")
+def trips():
+    with sqlite3.connect(DATABASE) as conn:
+        conn.row_factory = sqlite3.Row
+        trips = conn.execute(
+            """
+            SELECT id, title, match_date, opponent, stadium, memo
+            FROM trips
+            ORDER BY match_date DESC, id DESC
+            """
+            
+        ).fetchall()
+    
+    return render_template("trips.html",trips=trips)
+        
+
 
 @app.route("/hello/<name>")
 def hello_name(name):
