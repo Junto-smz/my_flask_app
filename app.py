@@ -133,8 +133,50 @@ def trips():
         ).fetchall()
     
     return render_template("trips.html",trips=trips)
-        
 
+@app.route("/new_trip", methods=["GET", "POST"])
+def new_trip():
+    error = None
+    title = ""
+    match_date = ""
+    opponent = ""
+    stadium = ""
+    memo = ""
+    
+    if request.method == "POST":
+        title = request.form["title"].strip()
+        match_date = request.form["match_date"].strip()
+        opponent = request.form["opponent"].strip()
+        stadium = request.form["stadium"].strip()
+        memo = request.form["memo"].strip()
+
+        if title == "":
+            error = "遠征名を入力してください。"
+        elif match_date == "":
+            error = "試合日を入力してください。"
+        elif opponent == "":
+            error = "対戦相手を入力してください。"
+        else:
+            with sqlite3.connect(DATABASE) as conn:
+                conn.execute(
+                    """
+                    INSERT INTO trips (title, match_date, opponent, stadium, memo)
+                    VALUES (?, ?, ?, ?, ?)
+                    """,
+                    (title, match_date, opponent, stadium, memo),
+                )
+            flash("遠征を登録しました。")
+            return redirect(url_for("trips"))        
+    
+    return  render_template(
+        "new_trip.html",
+        error=error,
+        title=title,
+        match_date = match_date,
+        opponent = opponent,
+        stadium = stadium,
+        memo = memo
+    )
 
 @app.route("/hello/<name>")
 def hello_name(name):

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}遠征登録{% endblock %}
+
+{% block content %}
+    <h2>遠征登録</h2>
+
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% endif %}
+
+    <form method="POST">
+        <div>
+            <label for="title">遠征名</label>
+            <input type="text" id="title" name="title" value="{{ title }}">
+        </div>
+
+        <div>
+            <label for="match_date">試合日</label>
+            <input type="date" id="match_date" name="match_date" value="{{ match_date }}">
+        </div>
+
+        <div>
+            <label for="opponent">対戦相手</label>
+            <input type="text" id="opponent" name="opponent" value="{{ opponent }}">
+        </div>
+
+        <div>
+            <label for="stadium">試合会場</label>
+            <input type="text" id="stadium" name="stadium" value="{{ stadium }}">
+        </div>
+
+        <div>
+            <label for="memo">メモ</label>
+            <textarea id="memo" name="memo">{{ memo }}</textarea>
+        </div>
+
+        <button type="submit">登録</button>
+    </form>
+
+    <p>
+        <a href={{ url_for("trips") }}>遠征一覧へ戻る</a>
+    </p>
+{% endblock %}
