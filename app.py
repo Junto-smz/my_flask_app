@@ -134,7 +134,7 @@ def trips():
     
     return render_template("trips.html",trips=trips)
 
-@app.route("/new_trip", methods=["GET", "POST"])
+@app.route("/trips/new", methods=["GET", "POST"])
 def new_trip():
     error = None
     title = ""
