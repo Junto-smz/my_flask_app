@@ -178,6 +178,70 @@ def new_trip():
         memo = memo
     )
 
+
+@app.route("/trips/<int:trip_id>/edit", methods=["GET", "POST"])
+def edit_trip(trip_id):
+    error = None
+    
+    with sqlite3.connect(DATABASE) as conn:
+        conn.row_factory = sqlite3.Row
+        trip = conn.execute(
+            """
+            SELECT id, title, match_date, opponent, stadium, memo
+            FROM trips
+            WHERE id = ?
+            """,
+            (trip_id,),
+            
+        ).fetchone()
+        
+    if trip is None:
+        abort(404)
+        
+    title = trip["title"]
+    match_date = trip["match_date"]
+    opponent = trip["opponent"]
+    stadium = trip["stadium"] or ""
+    memo = trip["memo"] or ""
+    
+    if request.method == "POST":
+        title = request.form["title"].strip()
+        match_date = request.form["match_date"].strip()
+        opponent = request.form["opponent"].strip()
+        stadium = request.form["stadium"].strip()
+        memo = request.form["memo"].strip()
+
+        if title == "":
+            error = "遠征名を入力してください。"
+        elif match_date == "":
+            error = "試合日を入力してください。"
+        elif opponent == "":
+            error = "対戦相手を入力してください。"
+        else:
+            with sqlite3.connect(DATABASE) as conn:
+                conn.execute(
+                    """
+                    UPDATE trips
+                    SET title = ?, match_date = ?, opponent = ?, stadium = ?, memo = ?
+                    WHERE id = ?
+                    """,
+                    (title, match_date, opponent, stadium, memo, trip_id),
+                )
+            
+            flash("遠征を更新しました。")
+            return redirect(url_for("trips"))
+        
+    return render_template(
+        "edit_trip.html",
+        trip=trip,
+        error=error,
+        title=title,
+        match_date=match_date,
+        opponent=opponent,
+        stadium=stadium,
+        memo=memo,
+    )
+
 @app.route("/hello/<name>")
 def hello_name(name):
     return f"こんにちは、{name}さん！"
