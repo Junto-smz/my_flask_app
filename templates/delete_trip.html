@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}遠征削除確認{% endblock %}
+
+{% block content %}
+    <h2>遠征削除確認</h2>
+
+    <p>以下の遠征を削除しますか？</p>
+
+    <table>
+        <tr>
+            <th>試合日</th>
+            <td>{{ trip.match_date }}</td>
+        </tr>
+        <tr>
+            <th>遠征名</th>
+            <td>{{ trip.title }}</td>
+        </tr>
+        <tr>
+            <th>対戦相手</th>
+            <td>{{ trip.opponent }}</td>
+        </tr>
+        <tr>
+            <th>スタジアム</th>
+            <td>{{ trip.stadium or "" }}</td>
+        </tr>
+        <tr>
+            <th>メモ</th>
+            <td>{{ trip.memo or "" }}</td>
+        </tr>
+    </table>
+
+    <form method="post" action="{{ url_for('delete_trip', trip_id=trip.id) }}">
+        <button type="submit">本当に削除する</button>
+    </form>
+
+    <p>
+        <a href="{{ url_for('trips') }}">キャンセル</a>
+    </p>
+{% endblock %}

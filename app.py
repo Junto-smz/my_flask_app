@@ -242,6 +242,44 @@ def edit_trip(trip_id):
         memo=memo,
     )
 
+
+@app.route("/trips/<int:trip_id>/delete")
+def confirm_delete_trip(trip_id):
+    with sqlite3.connect(DATABASE) as conn:
+        conn.row_factory = sqlite3.Row
+        trip = conn.execute(
+            """
+            SELECT id, title, match_date, opponent, stadium, memo
+            FROM trips
+            WHERE id = ?
+            """,
+            (trip_id,),
+        ).fetchone()
+        
+    if trip is None:
+        abort(404)
+        
+    return render_template("delete_trip.html", trip=trip)
+
+
+@app.route("/trips/<int:trip_id>/delete", methods={"POST"})
+def delete_trip(trip_id):
+    with sqlite3.connect(DATABASE) as conn:
+        trip = conn.execute(
+            "SELECT id FROM trips WHERE id = ?",
+            (trip_id,),
+        ).fetchone()
+        
+        if trip is None:
+            about(404)
+        
+        conn.execute(
+            "DELETE FROM trips WHERE id = ?",
+            (trip_id,),
+        )
+    flash("遠征を削除しました。")
+    return redirect(url_for("trips"))
+        
 @app.route("/hello/<name>")
 def hello_name(name):
     return f"こんにちは、{name}さん！"
