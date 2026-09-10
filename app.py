@@ -352,11 +352,21 @@ def edit_expense(expense_id):
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
         expense = conn.execute(
-            """SELECT id, category, amount, spent_on, memo
+            """SELECT id, trip_id, category, amount, spent_on, memo
             FROM expenses
             WHERE id = ?""",
             (expense_id,),
         ).fetchone()
+        
+    with sqlite3.connect(DATABASE) as conn:
+        conn.row_factory = sqlite3.Row
+        trips = conn.execute(
+            """
+                SELECT id, title, match_date, opponent
+                FROM trips
+                ORDER BY match_date DESC, id DESC
+            """   
+        ).fetchall()
 
     if expense is None:
         abort(404)
@@ -365,22 +375,27 @@ def edit_expense(expense_id):
     category = expense["category"]
     amount_text = str(expense["amount"])
     memo = expense["memo"] or ""
+    trip_id = str(expense["trip_id"]) if expense["trip_id"] is not None else ""
 
     if request.method == "POST":
         spent_on = request.form["spent_on"].strip()
         category = request.form["category"].strip()
         amount_text = request.form["amount"].strip()
         memo = request.form["memo"].strip()
+        trip_id = request.form["trip_id"].strip()
 
+        if trip_id == "":
+            trip_id = None
+        
         error, amount = validate_expense_form(category, amount_text, spent_on)
 
         if error is None:
             with sqlite3.connect(DATABASE) as conn:
                 conn.execute(
                     """UPDATE expenses
-                    SET category = ?, amount = ?, spent_on = ?, memo = ?
+                    SET trip_id = ?, category = ?, amount = ?, spent_on = ?, memo = ?
                     WHERE id = ?""",
-                    (category, amount, spent_on, memo, expense_id),
+                    (trip_id, category, amount, spent_on, memo, expense_id),
                 )
             flash("支出を更新しました。")
             return redirect(url_for("index"))
@@ -394,6 +409,8 @@ def edit_expense(expense_id):
         amount_text=amount_text,
         memo=memo,
         categories=CATEGORIES,
+        trips = trips,
+        trip_id = trip_id
     )
 
 
