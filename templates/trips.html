@@ -25,7 +25,11 @@
                 {% for trip in trips %}
                     <tr>
                         <td>{{ trip.match_date }}</td>
-                        <td>{{ trip.title }}</td>
+                        <td>
+                            <a href="{{ url_for('trip_detail', trip_id = trip.id) }}">
+                                {{ trip.title }}
+                            </a>
+                        </td>
                         <td>{{ trip.opponent }}</td>
                         <td>{{ trip.stadium or "" }}</td>
                         <td>{{ trip.memo or "" }}</td>
