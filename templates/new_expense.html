@@ -20,7 +20,7 @@
             <select id="trip_id" name="trip_id">
                 <option value="">未選択</option>
                 {% for trip in trips %}
-                    <option value="{{ trip.id }}">
+                    <option value="{{ trip.id }}" {% if trip_id == trip.id|string %}selected{% endif %}>
                         {{ trip.match_date }} {{ trip.title }}
                     </option>
                 {% endfor %}

@@ -315,7 +315,7 @@ def delete_trip(trip_id):
         ).fetchone()
         
         if trip is None:
-            about(404)
+            abort(404)
         
         conn.execute(
             "DELETE FROM trips WHERE id = ?",
@@ -336,6 +336,7 @@ def new_expense():
     category = ""
     amount_text = ""
     memo = ""
+    trip_id = request.args.get("trip_id","")
 
     if request.method == "POST":
         spent_on = request.form["spent_on"].strip()
@@ -345,7 +346,7 @@ def new_expense():
         trip_id = request.form["trip_id"].strip()
         
         if trip_id == "":
-            trips = None
+            trip_id = None
 
 
         error, amount = validate_expense_form(category, amount_text, spent_on)
@@ -371,10 +372,13 @@ def new_expense():
             
         ).fetchall()
     
+    display_trip_id = str(trip_id) if trip_id is not None else ""
+    
     return render_template(
         "new_expense.html",
         error=error,
         spent_on=spent_on,
+        trip_id = display_trip_id,
         category=category,
         amount_text=amount_text,
         memo=memo,
