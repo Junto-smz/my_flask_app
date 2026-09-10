@@ -140,6 +140,44 @@ def trips():
     
     return render_template("trips.html",trips=trips)
 
+
+@app.route("/trips/<int:trip_id>")
+def trip_detail(trip_id):
+    with sqlite3.connect(DATABASE) as conn:
+        conn.row_factory = sqlite3.Row
+        trip = conn.execute(
+            """
+            SELECT id, title, match_date, opponent, stadium, memo
+            FROM trips
+            WHERE id = ?
+            """,
+            (trip_id,),
+        ).fetchone()
+        
+        if trip is None:
+            abort(404)
+        
+        expenses = conn.execute(
+            """
+                SELECT id, category, amount, spent_on, memo
+                FROM expenses
+                WHERE trip_id = ?
+                ORDER BY spent_on DESC, id DESC
+            """,
+            (trip_id,),
+        ).fetchall()
+    
+    total_amount = 0
+    for expense in expenses:
+        total_amount += expense["amount"]
+    
+    return render_template(
+        "trip_detail.html",
+        trip = trip,
+        expenses = expenses,
+        total_amount = total_amount,
+    )
+
 @app.route("/trips/new", methods=["GET", "POST"])
 def new_trip():
     error = None
