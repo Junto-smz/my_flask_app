@@ -16,6 +16,18 @@
         </div>
 
         <div>
+            <label for="trip_id">遠征</label>
+            <select id="trip_id" name="trip_id">
+                <option value="">未選択</option>
+                {% for trip in trips %}
+                    <option value="{{ trip.id }}">
+                        {{ trip.match_date }} {{ trip.title }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
             <label for="category">カテゴリ名</label>
             <select id="category" name="category">
                 <option value="">選択してください</option>

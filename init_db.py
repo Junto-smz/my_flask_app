@@ -5,6 +5,7 @@ with sqlite3.connect("./database/database.db") as conn:
         """
         CREATE TABLE IF NOT EXISTS expenses(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            trip_id INTEGER,
             category TEXT NOT NULL,
             amount INTEGER NOT NULL,
             spent_on TEXT NOT NULL,

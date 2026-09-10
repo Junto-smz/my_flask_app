@@ -49,22 +49,28 @@ def index():
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
         query = """
-                    SELECT id, category, amount, spent_on, memo
+                    SELECT  expenses.id, 
+                            expenses.category,
+                            expenses.amount,
+                            expenses.spent_on,
+                            expenses.memo,
+                            trips.title AS trip_title
                     FROM expenses
+                    LEFT JOIN trips ON expenses.trip_id = trips.id
                     WHERE 1=1
                 """
             
         params = []
             
         if selected_category:
-                query += " AND category = ?"
+                query += " AND expenses.category = ?"
                 params.append(selected_category)
             
         if selected_month:
-                query += " AND substr(spent_on, 1, 7) = ?"
+                query += " AND substr(expenses.spent_on, 1, 7) = ?"
                 params.append(selected_month)
                 
-        query += " ORDER BY spent_on DESC, id DESC"
+        query += " ORDER BY expenses.spent_on DESC, expenses.id DESC"
         
         expenses = conn.execute(query,params).fetchall()
 
@@ -298,19 +304,35 @@ def new_expense():
         category = request.form["category"].strip()
         amount_text = request.form["amount"].strip()
         memo = request.form["memo"].strip()
+        trip_id = request.form["trip_id"].strip()
+        
+        if trip_id == "":
+            trips = None
+
 
         error, amount = validate_expense_form(category, amount_text, spent_on)
 
         if error is None:
             with sqlite3.connect(DATABASE) as conn:
                 conn.execute(
-                    """INSERT INTO expenses (category, amount, spent_on, memo)
-                    VALUES (?, ?, ?, ?)""",
-                    (category, amount, spent_on, memo),
+                    """INSERT INTO expenses (trip_id, category, amount, spent_on, memo)
+                    VALUES (?, ?, ?, ?, ?)""",
+                    (trip_id, category, amount, spent_on, memo),
                 )
             flash("支出を登録できました。")
             return redirect(url_for("index"))
-
+    
+    with sqlite3.connect(DATABASE) as conn:
+        conn.row_factory = sqlite3.Row
+        trips = conn.execute(
+            """
+            SELECT id, title, match_date, opponent
+            FROM trips
+            ORDER BY match_date DESC, id DESC
+            """
+            
+        ).fetchall()
+    
     return render_template(
         "new_expense.html",
         error=error,
@@ -319,6 +341,7 @@ def new_expense():
         amount_text=amount_text,
         memo=memo,
         categories=CATEGORIES,
+        trips = trips,
     )
 
 
