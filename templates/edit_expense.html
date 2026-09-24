@@ -10,6 +10,7 @@
     {% endif %}
 
     <form method="post">
+        <input type="hidden" name="return_trip_id" value="{{ return_trip_id }}">
         <div>
             <label for="spent_on">支出日</label>
             <input type="date" id="spent_on" name="spent_on" value="{{ spent_on }}">
@@ -51,4 +52,9 @@
 
         <button type="submit">更新</button>
     </form>
+    {% if return_trip_id %}
+        <a href="{{ url_for('trip_detail', trip_id = return_trip_id) }}">遠征詳細へ戻る</a>
+    {% else %}
+        <a href="{{ url_for('index') }}">トップページへ戻る</a>
+    {% endif %}
 {% endblock %}

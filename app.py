@@ -166,7 +166,17 @@ def trip_detail(trip_id):
             """,
             (trip_id,),
         ).fetchall()
-    
+        category_totals = conn.execute(
+            """
+            SELECT category, SUM(amount) AS total
+            FROM expenses
+            WHERE trip_id = ?
+            GROUP BY category
+            ORDER BY total DESC
+            """,
+            (trip_id,),
+            
+        ).fetchall()
     total_amount = 0
     for expense in expenses:
         total_amount += expense["amount"]
@@ -176,6 +186,7 @@ def trip_detail(trip_id):
         trip = trip,
         expenses = expenses,
         total_amount = total_amount,
+        category_totals = category_totals,
     )
 
 @app.route("/trips/new", methods=["GET", "POST"])
@@ -390,7 +401,7 @@ def new_expense():
 @app.route("/expenses/<int:expense_id>/edit", methods=["GET", "POST"])
 def edit_expense(expense_id):
     error = None
-
+    return_trip_id = request.args.get("trip_id","")
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
         expense = conn.execute(
@@ -425,6 +436,7 @@ def edit_expense(expense_id):
         amount_text = request.form["amount"].strip()
         memo = request.form["memo"].strip()
         trip_id = request.form["trip_id"].strip()
+        return_trip_id = request.form.get("return_trip_id","").strip()
 
         if trip_id == "":
             trip_id = None
@@ -440,6 +452,8 @@ def edit_expense(expense_id):
                     (trip_id, category, amount, spent_on, memo, expense_id),
                 )
             flash("支出を更新しました。")
+            if return_trip_id:
+                return redirect(url_for("trip_detail", trip_id = return_trip_id))
             return redirect(url_for("index"))
 
     return render_template(
@@ -452,7 +466,8 @@ def edit_expense(expense_id):
         memo=memo,
         categories=CATEGORIES,
         trips = trips,
-        trip_id = trip_id
+        trip_id = trip_id,
+        return_trip_id = return_trip_id,
     )
 
 
