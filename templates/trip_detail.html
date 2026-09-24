@@ -54,7 +54,7 @@
                         <td>{{expense.memo or ""}}</td>
                         <td>
                             <a href="{{ url_for('edit_expense', expense_id = expense.id) }}">編集</a>
-                            <a href="{{ url_for('confirm_delete_expense', expense_id = expense.id)}}">削除</a>
+                            <a href="{{ url_for('confirm_delete_expense', expense_id = expense.id, return_trip_id=trip.id)}}">削除</a>
                         </td>
                     </tr>
                 {% endfor %}

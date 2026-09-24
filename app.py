@@ -458,11 +458,12 @@ def edit_expense(expense_id):
 
 @app.route("/expenses/<int:expense_id>/delete", methods=["GET"])
 def confirm_delete_expense(expense_id):
+    return_trip_id = request.args.get("return_trip_id","")
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
         expense = conn.execute(
             """
-            SELECT id, category, amount, spent_on, memo
+            SELECT id, trip_id, category, amount, spent_on, memo
             FROM expenses
             WHERE id = ?
             """,
@@ -472,11 +473,16 @@ def confirm_delete_expense(expense_id):
     if expense is None:
         abort(404)
 
-    return render_template("delete_expense.html", expense=expense)
+    return render_template("delete_expense.html", 
+                            expense=expense,
+                            return_trip_id = return_trip_id)
 
 
 @app.route("/expenses/<int:expense_id>/delete", methods=["POST"])
 def delete_expense(expense_id):
+    
+    return_trip_id = request.form.get("return_trip_id","").strip()
+    
     with sqlite3.connect(DATABASE) as conn:
         conn.execute(
             """DELETE FROM expenses
@@ -484,6 +490,10 @@ def delete_expense(expense_id):
             (expense_id,),
         )
     flash("支出を削除しました。")
+    
+    if return_trip_id:
+        return redirect(url_for("trip_detail", trip_id = return_trip_id))
+    
     return redirect(url_for("index"))
 
 @app.errorhandler(404)
