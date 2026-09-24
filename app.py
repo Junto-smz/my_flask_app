@@ -131,9 +131,24 @@ def trips():
         conn.row_factory = sqlite3.Row
         trips = conn.execute(
             """
-            SELECT id, title, match_date, opponent, stadium, memo
+            SELECT
+                trips.id,
+                trips.title,
+                trips.match_date,
+                trips.opponent,
+                trips.stadium,
+                trips.memo,
+                COALESCE(SUM(expenses.amount), 0) AS total_amount
             FROM trips
-            ORDER BY match_date DESC, id DESC
+            LEFT JOIN expenses ON trips.id = expenses.trip_id
+            GROUP BY 
+                trips.id,
+                trips.title,
+                trips.match_date,
+                trips.opponent,
+                trips.stadium,
+                trips.memo
+            ORDER BY trips.match_date DESC,trips.id DESC
             """
             
         ).fetchall()

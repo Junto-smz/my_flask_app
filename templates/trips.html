@@ -17,6 +17,7 @@
                     <th>遠征名</th>
                     <th>対戦相手</th>
                     <th>スタジアム</th>
+                    <th>合計金額</th>
                     <th>メモ</th>
                     <th>操作</th>
                 </tr>
@@ -32,6 +33,7 @@
                         </td>
                         <td>{{ trip.opponent }}</td>
                         <td>{{ trip.stadium or "" }}</td>
+                        <td>{{ trip.total_amount|yen }}</td>
                         <td>{{ trip.memo or "" }}</td>
                         <td>
                             <a href="{{ url_for('edit_trip', trip_id=trip.id) }}">編集</a>
