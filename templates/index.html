@@ -6,7 +6,7 @@
     <p>{{ description }}</p>
 
     <h2>サマリー</h2>
-    <p>合計金額：{{ total_amount | yen }}</p>
+    <p class="total-amount">合計金額：{{ total_amount | yen }}</p>
 
     <h2>月別金額</h2>
     {% if monthly_totals %}
