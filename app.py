@@ -387,6 +387,7 @@ def new_expense():
     amount_text = ""
     memo = ""
     trip_id = request.args.get("trip_id","")
+    return_trip_id = request.args.get("trip_id","")
     trip = None
 
     if request.method == "GET" and trip_id:
@@ -411,6 +412,7 @@ def new_expense():
         amount_text = request.form["amount"].strip()
         memo = request.form["memo"].strip()
         trip_id = request.form["trip_id"].strip()
+        return_trip_id = request.form.get("return_trip_id", "").strip()
         
         if trip_id == "":
             trip_id = None
@@ -426,6 +428,9 @@ def new_expense():
                     (trip_id, category, amount, spent_on, memo),
                 )
             flash("支出を登録できました。")
+            if return_trip_id:
+                return redirect(url_for("trip_detail", trip_id=trip_id))
+
             return redirect(url_for("index"))
     
     with sqlite3.connect(DATABASE) as conn:
@@ -451,13 +456,14 @@ def new_expense():
         memo=memo,
         categories=CATEGORIES,
         trips = trips,
+        return_trip_id = return_trip_id,
     )
 
 
 @app.route("/expenses/<int:expense_id>/edit", methods=["GET", "POST"])
 def edit_expense(expense_id):
     error = None
-    return_trip_id = request.args.get("trip_id","")
+    return_trip_id = request.args.get("return_trip_id","")
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
         expense = conn.execute(
@@ -510,6 +516,7 @@ def edit_expense(expense_id):
             flash("支出を更新しました。")
             if return_trip_id:
                 return redirect(url_for("trip_detail", trip_id = return_trip_id))
+
             return redirect(url_for("index"))
 
     return render_template(

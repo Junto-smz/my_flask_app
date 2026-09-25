@@ -10,6 +10,7 @@
     {% endif %}
 
     <form method="post">
+        <input type="hidden" name="return_trip_id" value="{{ return_trip_id }}">
         <div>
             <label for="spent_on">支出日</label>
             <input type="date" id="spent_on" name="spent_on" value="{{ spent_on }}">
