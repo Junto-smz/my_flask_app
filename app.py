@@ -326,15 +326,29 @@ def confirm_delete_trip(trip_id):
             (trip_id,),
         ).fetchone()
         
+        expense_count_row = conn.execute(
+            """
+            SELECT COUNT(*) AS expense_count
+            FROM expenses
+            WHERE trip_id = ?
+            """,
+            (trip_id,),
+            
+        ).fetchone()
+
+        expense_count = expense_count_row["expense_count"]
     if trip is None:
         abort(404)
         
-    return render_template("delete_trip.html", trip=trip)
+    return render_template("delete_trip.html",
+                            trip=trip,
+                            expense_count = expense_count,)
 
 
 @app.route("/trips/<int:trip_id>/delete", methods={"POST"})
 def delete_trip(trip_id):
     with sqlite3.connect(DATABASE) as conn:
+        conn.row_factory = sqlite3.Row
         trip = conn.execute(
             "SELECT id FROM trips WHERE id = ?",
             (trip_id,),
@@ -343,6 +357,20 @@ def delete_trip(trip_id):
         if trip is None:
             abort(404)
         
+        expense_count_row = conn.execute(
+            """
+            SELECT COUNT(*) AS expense_count
+            FROM expenses
+            WHERE trip_id = ?
+            """,
+            (trip_id,),
+        ).fetchone()
+        
+        expense_count = expense_count_row["expense_count"]
+        
+        if expense_count > 0:
+            flash("支出が紐づいている遠征は削除できません。")
+            return redirect(url_for(""))
         conn.execute(
             "DELETE FROM trips WHERE id = ?",
             (trip_id,),
@@ -522,7 +550,8 @@ def confirm_delete_expense(expense_id):
 
     return render_template("delete_expense.html", 
                             expense=expense,
-                            return_trip_id = return_trip_id)
+                            return_trip_id = return_trip_id,
+                            )
 
 
 @app.route("/expenses/<int:expense_id>/delete", methods=["POST"])
