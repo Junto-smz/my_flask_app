@@ -363,7 +363,24 @@ def new_expense():
     amount_text = ""
     memo = ""
     trip_id = request.args.get("trip_id","")
+    trip = None
 
+    if request.method == "GET" and trip_id:
+        with sqlite3.connect(DATABASE) as conn:
+            conn.row_factory = sqlite3.Row
+            trip = conn.execute(
+                """
+                SELECT match_date
+                FROM trips
+                WHERE id = ?
+                """,
+                (trip_id,),
+                
+            ).fetchone()
+    
+    if trip is not None:
+        spent_on = trip["match_date"]   
+        
     if request.method == "POST":
         spent_on = request.form["spent_on"].strip()
         category = request.form["category"].strip()
