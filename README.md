@@ -111,4 +111,28 @@ Jリーグ観戦では、チケット代だけでなく、交通費、宿泊費�
 
 ## セットアップ方法
 
-準備中
+### 1. リポジトリをクローン
+
+'''bash
+git clone https://github.com/Junto-smz/my_flask_app.git
+cd my_flask_app
+
+### 2. 仮想環境を作成
+python -m venv venv
+
+### 3. 仮想環境を有効化
+venv\Scripts\Activate.psl
+
+### 4. 必要なライブラリをインストール
+pip install -r requirements.txt
+
+### 5.データベースを有効化
+python init_db.py
+
+### 6.アプリを起動
+python app.py
+
+## 注意点
+
+このアプリは学習用・開発用のアプリです。
+'database/database.db'はGit管理対象外にしているため、初回起動時は'python init_db.py'を実行してデータベースを作成してください。
