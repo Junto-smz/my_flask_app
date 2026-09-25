@@ -370,7 +370,7 @@ def delete_trip(trip_id):
         
         if expense_count > 0:
             flash("支出が紐づいている遠征は削除できません。")
-            return redirect(url_for(""))
+            return redirect(url_for("trips"))
         conn.execute(
             "DELETE FROM trips WHERE id = ?",
             (trip_id,),
@@ -378,11 +378,7 @@ def delete_trip(trip_id):
     flash("遠征を削除しました。")
     return redirect(url_for("trips"))
         
-@app.route("/hello/<name>")
-def hello_name(name):
-    return f"こんにちは、{name}さん！"
-
-
+        
 @app.route("/expenses/new", methods=["GET", "POST"])
 def new_expense():
     error = None
