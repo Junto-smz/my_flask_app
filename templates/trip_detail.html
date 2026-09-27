@@ -31,6 +31,8 @@
     <h3>この遠征の合計</h3>
     <p class="total-amount">{{ total_amount | yen }}</p>
 
+    <p class="total-amount">支出件数:　{{ expense_count }}件</p>
+
     <h3>カテゴリ別合計</h3>
 
     {% if category_totals %}

@@ -181,6 +181,9 @@ def trip_detail(trip_id):
             """,
             (trip_id,),
         ).fetchall()
+        
+        expense_count = len(expenses)
+        
         category_totals = conn.execute(
             """
             SELECT category, SUM(amount) AS total
@@ -202,6 +205,7 @@ def trip_detail(trip_id):
         expenses = expenses,
         total_amount = total_amount,
         category_totals = category_totals,
+        expense_count = expense_count,
     )
 
 @app.route("/trips/new", methods=["GET", "POST"])
