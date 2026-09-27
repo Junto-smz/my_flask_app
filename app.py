@@ -138,7 +138,8 @@ def trips():
                 trips.opponent,
                 trips.stadium,
                 trips.memo,
-                COALESCE(SUM(expenses.amount), 0) AS total_amount
+                COALESCE(SUM(expenses.amount), 0) AS total_amount,
+                COUNT(expenses.id) AS expense_count
             FROM trips
             LEFT JOIN expenses ON trips.id = expenses.trip_id
             GROUP BY 
