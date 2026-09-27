@@ -67,16 +67,25 @@
             {% endfor %}
         </select> 
 
+        <label>メモ検索:</label>
+        <input type="text" name="keyword" value="{{ keyword }}" placeholder="例:新幹線、ホテル">
+
+
         <button type="submit">絞り込み</button>
     </form>
 
-{% if selected_category or selected_month%}
+{% if selected_category or selected_month or keyword %}
     <p>現在の絞り込み:
     {% if selected_category %}
-        カテゴリ_{{ selected_category }}
+        カテゴリ_｛{{ selected_category }}｝
     {% endif %}
+
     {% if selected_month %}
-        / 月_{{ selected_month }}
+        / 月_｛{{ selected_month }}｝
+    {% endif %}
+
+    {% if keyword %}
+        /メモ｛{{ keyword }}｝
     {% endif %}
     </p>
 {% endif %}
