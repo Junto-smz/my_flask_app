@@ -45,7 +45,8 @@ def index():
     description = "遠征にかかった費用を記録・管理するアプリです。"
     selected_category = request.args.get("category", "")
     selected_month = request.args.get("month", "")    
-
+    keyword = request.args.get("keyword","").strip()
+    
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
         query = """
@@ -61,7 +62,7 @@ def index():
                 """
             
         params = []
-            
+
         if selected_category:
                 query += " AND expenses.category = ?"
                 params.append(selected_category)
@@ -69,6 +70,10 @@ def index():
         if selected_month:
                 query += " AND substr(expenses.spent_on, 1, 7) = ?"
                 params.append(selected_month)
+        
+        if keyword:
+            query += " AND expenses.memo LIKE ?"
+            params.append(f"%{keyword}%")
                 
         query += " ORDER BY expenses.spent_on DESC, expenses.id DESC"
         
@@ -117,7 +122,8 @@ def index():
         categories = CATEGORIES,
         selected_category = selected_category,
         months = months,
-        selected_month = selected_month
+        selected_month = selected_month,
+        keyword = keyword
     )
 
 
