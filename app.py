@@ -2,6 +2,9 @@ import sqlite3
 
 from flask import Flask, abort, redirect, render_template, request, url_for, flash
 
+from datetime import date
+
+
 app = Flask(__name__)
 app.secret_key = "dev-secret-key"
 
@@ -393,7 +396,7 @@ def delete_trip(trip_id):
 @app.route("/expenses/new", methods=["GET", "POST"])
 def new_expense():
     error = None
-    spent_on = ""
+    spent_on = date.today().isoformat()
     category = ""
     amount_text = ""
     memo = ""
