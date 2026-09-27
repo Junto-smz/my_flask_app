@@ -90,7 +90,7 @@
     </p>
 {% endif %}
 
-{% if selected_category or selected_month %}
+{% if selected_category or selected_month or keyword %}
     <p>
         <a href="{{url_for('index') }}">絞り込みを解除</a>
     </p>
