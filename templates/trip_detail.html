@@ -90,6 +90,9 @@
     {% endif %}
 
     <p>
+        <a href="{{ url_for('edit_trip', trip_id = trip.id) }}">この遠征を編集する</a>
+    </p>
+    <p>
         <a href="{{ url_for('new_expense', trip_id = trip.id) }}">この遠征に支出を追加</a>
     </p>
 
