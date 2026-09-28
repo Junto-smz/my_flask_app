@@ -2,11 +2,11 @@ import os
 
 import sqlite3
 
-from flask import Flask, abort, redirect, render_template, request, url_for, flash
+from flask import Flask, abort, redirect, render_template, request, session, url_for, flash
 
 from datetime import date
 
-from werkzeug.security import generate_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 
 
 app = Flask(__name__)
@@ -175,9 +175,46 @@ def register():
     )
     
     
-@app.route("/login")
+@app.route("/login", methods = ["GET", "POST"])
 def login():
-    return render_template("login.html")
+    error = None
+    username = ""
+    
+    if request.method == "POST":
+            username = request.form["username"].strip()
+            password = request.form["password"]
+
+            if username == "":
+                error = "ユーザー名を入力してください。"
+            elif password == "":
+                error = "パスワードを入力してください。"
+            else:
+                with sqlite3.connect(DATABASE) as conn:
+                    conn.row_factory = sqlite3.Row
+                    user = conn.execute(
+                        """
+                        SELECT id, username, password_hash
+                        FROM users
+                        WHERE username = ?
+                        """,
+                        (username,),
+                    ).fetchone()
+                
+                if user is None:
+                    error = "ユーザー名またはパスワードが正しくありません。"
+                elif not check_password_hash(user["password_hash"], password):
+                    error = "ユーザー名またはパスワードが正しくありません。"
+                else:
+                    session["user_id"] = user["id"]
+                    session["username"] = user["username"]
+                    flash("ログインしました。")
+                    return redirect(url_for("index"))
+            
+    return render_template(
+        "login.html",
+        error = error,
+        username = username
+    )
 
 
 
