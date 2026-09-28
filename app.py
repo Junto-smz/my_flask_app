@@ -555,9 +555,16 @@ def confirm_delete_expense(expense_id):
         conn.row_factory = sqlite3.Row
         expense = conn.execute(
             """
-            SELECT id, trip_id, category, amount, spent_on, memo
+            SELECT 
+                expenses.id,
+                expenses.category,
+                expenses.amount,
+                expenses.spent_on,
+                expenses.memo,
+                trips.title AS trip_title
             FROM expenses
-            WHERE id = ?
+            LEFT JOIN trips ON expenses.trip_id = trips.id
+            WHERE expenses.id = ?
             """,
             (expense_id,)
         ).fetchone()
@@ -594,4 +601,4 @@ def page_not_found(error):
     return render_template("404.html"),404
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
