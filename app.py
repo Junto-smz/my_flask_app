@@ -152,18 +152,22 @@ def register():
         else:
             password_hash = generate_password_hash(password)
             
-            with sqlite3.connect(DATABASE) as conn:
-                conn.execute(
-                    """
-                    INSERT INTO users (username, password_hash)
-                    VALUES (?, ?)
-                    """,
-                    (username, password_hash),
-                )
+            try:
+                with sqlite3.connect(DATABASE) as conn:
+                    conn.execute(
+                        """
+                        INSERT INTO users (username, password_hash)
+                        VALUES (?, ?)
+                        """,
+                        (username, password_hash),
+                    )
+            except sqlite3.IntegrityError:
+                error = "そのユーザー名はすでに使われています。"
             
-            flash("ユーザー登録が完了しました。ログインしてください。")
-            return redirect(url_for("index"))
-        
+            else:
+                flash("ユーザー登録が完了しました。ログインしてください。")
+                return redirect(url_for("index"))
+
     return render_template(
         "register.html",
         error = error,
