@@ -6,6 +6,8 @@ from flask import Flask, abort, redirect, render_template, request, url_for, fla
 
 from datetime import date
 
+from werkzeug.security import generate_password_hash
+
 
 app = Flask(__name__)
 app.secret_key = "dev-secret-key"
@@ -134,9 +136,39 @@ def index():
     )
 
 
-@app.route("/register")
+@app.route("/register", methods=["GET", "POST"])
 def register():
-    return render_template("register.html")
+    error = None
+    username = ""
+    
+    if request.method == "POST":
+        username = request.form["username"].strip()
+        password = request.form["password"]
+        
+        if username == "":
+            error =  "ユーザー名を入力してください。"
+        elif password == "":
+            error = "パスワードを入力してください。"
+        else:
+            password_hash = generate_password_hash(password)
+            
+            with sqlite3.connect(DATABASE) as conn:
+                conn.execute(
+                    """
+                    INSERT INTO users (username, password_hash)
+                    VALUES (?, ?)
+                    """,
+                    (username, password_hash),
+                )
+            
+            flash("ユーザー登録が完了しました。ログインしてください。")
+            return redirect(url_for("index"))
+        
+    return render_template(
+        "register.html",
+        error = error,
+        username =  username
+    )
 
 @app.route("/about")
 def about():
