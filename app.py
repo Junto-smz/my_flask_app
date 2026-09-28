@@ -1,3 +1,5 @@
+import os
+
 import sqlite3
 
 from flask import Flask, abort, redirect, render_template, request, url_for, flash
@@ -8,7 +10,9 @@ from datetime import date
 app = Flask(__name__)
 app.secret_key = "dev-secret-key"
 
-DATABASE = "database/database.db"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+DATABASE = os.path.join(BASE_DIR, "database","database.db")
 
 CATEGORIES = [
     "交通費",
