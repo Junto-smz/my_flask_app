@@ -173,6 +173,14 @@ def register():
         error = error,
         username =  username
     )
+    
+    
+@app.route("/login")
+def login():
+    return render_template("login.html")
+
+
+
 
 @app.route("/about")
 def about():
