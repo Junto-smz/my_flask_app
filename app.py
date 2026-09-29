@@ -56,6 +56,9 @@ def validate_expense_form(category, amount_text, spent_on):
 
 @app.route("/")
 def index():
+    login_check = login_required()
+    if login_check:
+        return login_check
     app_name = "Jリーグアウェイ遠征家計簿"
     description = "遠征にかかった費用を記録・管理するアプリです。"
     selected_category = request.args.get("category", "")
@@ -73,10 +76,10 @@ def index():
                             trips.title AS trip_title
                     FROM expenses
                     LEFT JOIN trips ON expenses.trip_id = trips.id
-                    WHERE 1=1
+                    WHERE expenses.user_id = ?
                 """
-            
-        params = []
+                
+        params = [session["user_id"]]
 
         if selected_category:
                 query += " AND expenses.category = ?"
