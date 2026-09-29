@@ -25,6 +25,12 @@ CATEGORIES = [
     "その他",
 ]
 
+def login_required():
+    if not session.get("user_id"):
+        flash("ログインしてください。")
+        return redirect(url_for("login"))
+    return None
+
 @app.template_filter("yen")
 def yen_filter(amount):
     return f'{amount:,}円'
@@ -314,6 +320,10 @@ def trip_detail(trip_id):
 
 @app.route("/trips/new", methods=["GET", "POST"])
 def new_trip():
+    login_check = login_required()
+    if login_check:
+        return login_check
+        
     error = None
     title = ""
     match_date = ""
@@ -359,6 +369,10 @@ def new_trip():
 
 @app.route("/trips/<int:trip_id>/edit", methods=["GET", "POST"])
 def edit_trip(trip_id):
+    login_check = login_required()
+    if login_check:
+        return login_check
+        
     error = None
     
     with sqlite3.connect(DATABASE) as conn:
@@ -423,6 +437,10 @@ def edit_trip(trip_id):
 
 @app.route("/trips/<int:trip_id>/delete")
 def confirm_delete_trip(trip_id):
+    login_check = login_required()
+    if login_check:
+        return login_check
+        
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
         trip = conn.execute(
@@ -455,6 +473,10 @@ def confirm_delete_trip(trip_id):
 
 @app.route("/trips/<int:trip_id>/delete", methods={"POST"})
 def delete_trip(trip_id):
+    login_check = login_required()
+    if login_check:
+        return login_check
+        
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
         trip = conn.execute(
@@ -489,6 +511,11 @@ def delete_trip(trip_id):
         
 @app.route("/expenses/new", methods=["GET", "POST"])
 def new_expense():
+    
+    login_check = login_required()
+    if login_check:
+        return login_check
+    
     error = None
     spent_on = date.today().isoformat()
     category = ""
@@ -570,6 +597,10 @@ def new_expense():
 
 @app.route("/expenses/<int:expense_id>/edit", methods=["GET", "POST"])
 def edit_expense(expense_id):
+    login_check = login_required()
+    if login_check:
+        return login_check
+        
     error = None
     return_trip_id = request.args.get("return_trip_id","")
     with sqlite3.connect(DATABASE) as conn:
@@ -644,6 +675,10 @@ def edit_expense(expense_id):
 
 @app.route("/expenses/<int:expense_id>/delete", methods=["GET"])
 def confirm_delete_expense(expense_id):
+    login_check = login_required()
+    if login_check:
+        return login_check
+        
     return_trip_id = request.args.get("return_trip_id","")
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
@@ -674,7 +709,10 @@ def confirm_delete_expense(expense_id):
 
 @app.route("/expenses/<int:expense_id>/delete", methods=["POST"])
 def delete_expense(expense_id):
-    
+    login_check = login_required()
+    if login_check:
+        return login_check
+        
     return_trip_id = request.form.get("return_trip_id","").strip()
     
     with sqlite3.connect(DATABASE) as conn:
