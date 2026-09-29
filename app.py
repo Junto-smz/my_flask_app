@@ -239,6 +239,10 @@ def about():
 
 @app.route("/trips")
 def trips():
+    login_check = login_required()
+    if login_check:
+        return login_check
+    
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
         trips = conn.execute(
@@ -254,6 +258,7 @@ def trips():
                 COUNT(expenses.id) AS expense_count
             FROM trips
             LEFT JOIN expenses ON trips.id = expenses.trip_id
+            WHERE trips.user_id = ?
             GROUP BY 
                 trips.id,
                 trips.title,
@@ -262,8 +267,8 @@ def trips():
                 trips.stadium,
                 trips.memo
             ORDER BY trips.match_date DESC,trips.id DESC
-            """
-            
+            """,
+            (session["user_id"],),
         ).fetchall()
     
     return render_template("trips.html",trips=trips)
