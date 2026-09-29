@@ -586,9 +586,10 @@ def new_expense():
             """
             SELECT id, title, match_date, opponent
             FROM trips
+            WHERE user_id = ?
             ORDER BY match_date DESC, id DESC
-            """
-            
+            """,
+        (session["user_id"],),
         ).fetchall()
     
     display_trip_id = str(trip_id) if trip_id is not None else ""
@@ -620,8 +621,9 @@ def edit_expense(expense_id):
         expense = conn.execute(
             """SELECT id, trip_id, category, amount, spent_on, memo
             FROM expenses
-            WHERE id = ?""",
-            (expense_id,),
+            WHERE id = ? AND user_id = ?
+            """,
+            (expense_id, session["user_id"]),
         ).fetchone()
         
     with sqlite3.connect(DATABASE) as conn:
@@ -630,8 +632,10 @@ def edit_expense(expense_id):
             """
                 SELECT id, title, match_date, opponent
                 FROM trips
+                WHERE user_id = ?
                 ORDER BY match_date DESC, id DESC
-            """   
+            """,
+            (session["user_id"],),
         ).fetchall()
 
     if expense is None:
@@ -661,8 +665,10 @@ def edit_expense(expense_id):
                 conn.execute(
                     """UPDATE expenses
                     SET trip_id = ?, category = ?, amount = ?, spent_on = ?, memo = ?
-                    WHERE id = ?""",
-                    (trip_id, category, amount, spent_on, memo, expense_id),
+                    WHERE id = ? AND user_id = ?
+                    """,
+                    (trip_id, category, amount, spent_on, memo, expense_id,
+                    session["user_id"],),
                 )
             flash("支出を更新しました。")
             if return_trip_id:
@@ -705,9 +711,9 @@ def confirm_delete_expense(expense_id):
                 trips.title AS trip_title
             FROM expenses
             LEFT JOIN trips ON expenses.trip_id = trips.id
-            WHERE expenses.id = ?
+            WHERE expenses.id = ? AND expenses.user_id = ?
             """,
-            (expense_id,)
+            (expense_id, session["user_id"]),
         ).fetchone()
 
     if expense is None:
@@ -730,8 +736,9 @@ def delete_expense(expense_id):
     with sqlite3.connect(DATABASE) as conn:
         conn.execute(
             """DELETE FROM expenses
-            WHERE id = ?""",
-            (expense_id,),
+            WHERE id = ? AND user_id = ?
+            """,
+            (expense_id, session["user_id"]),
         )
     flash("支出を削除しました。")
     
