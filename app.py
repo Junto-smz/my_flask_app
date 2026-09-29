@@ -393,9 +393,9 @@ def edit_trip(trip_id):
             """
             SELECT id, title, match_date, opponent, stadium, memo
             FROM trips
-            WHERE id = ?
+            WHERE id = ? AND user_id = ?
             """,
-            (trip_id,),
+            (trip_id, session["user_id"]),
             
         ).fetchone()
         
@@ -427,9 +427,9 @@ def edit_trip(trip_id):
                     """
                     UPDATE trips
                     SET title = ?, match_date = ?, opponent = ?, stadium = ?, memo = ?
-                    WHERE id = ?
+                    WHERE id = ? AND user_id = ?
                     """,
-                    (title, match_date, opponent, stadium, memo, trip_id),
+                    (title, match_date, opponent, stadium, memo, trip_id, session["user_id"]),
                 )
             
             flash("遠征を更新しました。")
@@ -459,18 +459,18 @@ def confirm_delete_trip(trip_id):
             """
             SELECT id, title, match_date, opponent, stadium, memo
             FROM trips
-            WHERE id = ?
+            WHERE id = ? AND user_id = ?
             """,
-            (trip_id,),
+            (trip_id, session["user_id"]),
         ).fetchone()
         
         expense_count_row = conn.execute(
             """
             SELECT COUNT(*) AS expense_count
             FROM expenses
-            WHERE trip_id = ?
+            WHERE trip_id = ? AND user_id = ?
             """,
-            (trip_id,),
+            (trip_id, session["user_id"]),
             
         ).fetchone()
 
@@ -503,9 +503,9 @@ def delete_trip(trip_id):
             """
             SELECT COUNT(*) AS expense_count
             FROM expenses
-            WHERE trip_id = ?
+            WHERE trip_id = ? AND user_id = ?
             """,
-            (trip_id,),
+            (trip_id, session["user_id"]),
         ).fetchone()
         
         expense_count = expense_count_row["expense_count"]
@@ -514,8 +514,10 @@ def delete_trip(trip_id):
             flash("支出が紐づいている遠征は削除できません。")
             return redirect(url_for("trips"))
         conn.execute(
-            "DELETE FROM trips WHERE id = ?",
-            (trip_id,),
+            """DELETE FROM trips 
+            WHERE id = ? AND user_id = ?
+            """,
+            (trip_id, session["user_id"]),
         )
     flash("遠征を削除しました。")
     return redirect(url_for("trips"))
