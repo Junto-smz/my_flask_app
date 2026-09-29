@@ -557,6 +557,8 @@ def new_expense():
     trip = None
 
     if request.method == "GET" and trip_id:
+        if trip_id and not validate_trip_owner(trip_id):
+            abort(404)
         with sqlite3.connect(DATABASE) as conn:
             conn.row_factory = sqlite3.Row
             trip = conn.execute(
