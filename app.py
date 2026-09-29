@@ -276,15 +276,19 @@ def trips():
 
 @app.route("/trips/<int:trip_id>")
 def trip_detail(trip_id):
+    login_check = login_required()
+    if login_check:
+        return login_check
+    
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
         trip = conn.execute(
             """
             SELECT id, title, match_date, opponent, stadium, memo
             FROM trips
-            WHERE id = ?
+            WHERE id = ? AND user_id = ?
             """,
-            (trip_id,),
+            (trip_id, session["user_id"]),
         ).fetchone()
         
         if trip is None:
@@ -294,10 +298,10 @@ def trip_detail(trip_id):
             """
                 SELECT id, category, amount, spent_on, memo
                 FROM expenses
-                WHERE trip_id = ?
+                WHERE trip_id = ? AND user_id = ?
                 ORDER BY spent_on DESC, id DESC
             """,
-            (trip_id,),
+            (trip_id, session["user_id"]),
         ).fetchall()
         
         expense_count = len(expenses)
