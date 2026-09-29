@@ -16,6 +16,7 @@ with sqlite3.connect("./database/database.db") as conn:
         """
         CREATE TABLE IF NOT EXISTS trips (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
             title TEXT NOT NULL,
             match_date TEXT NOT NULL,
             opponent TEXT NOT NULL,
@@ -29,6 +30,7 @@ with sqlite3.connect("./database/database.db") as conn:
         """
         CREATE TABLE IF NOT EXISTS expenses(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
             trip_id INTEGER,
             category TEXT NOT NULL,
             amount INTEGER NOT NULL,
