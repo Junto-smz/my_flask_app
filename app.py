@@ -217,6 +217,11 @@ def login():
     )
 
 
+@app.route("/logout")
+def logout():
+    session.clear()
+    flash("ログアウトしました。")
+    return redirect(url_for("index"))
 
 
 @app.route("/about")
