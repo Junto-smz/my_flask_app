@@ -2,9 +2,11 @@ import os
 
 import sqlite3
 
-from flask import Flask, abort, redirect, render_template, request, url_for, flash
+from flask import Flask, abort, redirect, render_template, request, session, url_for, flash
 
 from datetime import date
+
+from werkzeug.security import check_password_hash, generate_password_hash
 
 
 app = Flask(__name__)
@@ -22,6 +24,29 @@ CATEGORIES = [
     "グッズ代",
     "その他",
 ]
+
+def login_required():
+    if not session.get("user_id"):
+        flash("ログインしてください。")
+        return redirect(url_for("login"))
+    return None
+
+
+def validate_trip_owner(trip_id):
+    if trip_id == "":
+        return True
+    
+    with sqlite3.connect(DATABASE) as conn:
+        trip = conn.execute(
+            """
+            SELECT id
+            FROM trips
+            WHERE id = ? AND user_id = ?
+            """,
+            (trip_id, session["user_id"]),
+        ).fetchone()
+    
+    return trip is not None
 
 @app.template_filter("yen")
 def yen_filter(amount):
@@ -48,6 +73,9 @@ def validate_expense_form(category, amount_text, spent_on):
 
 @app.route("/")
 def index():
+    login_check = login_required()
+    if login_check:
+        return login_check
     app_name = "Jリーグアウェイ遠征家計簿"
     description = "遠征にかかった費用を記録・管理するアプリです。"
     selected_category = request.args.get("category", "")
@@ -65,10 +93,10 @@ def index():
                             trips.title AS trip_title
                     FROM expenses
                     LEFT JOIN trips ON expenses.trip_id = trips.id
-                    WHERE 1=1
+                    WHERE expenses.user_id = ?
                 """
-            
-        params = []
+                
+        params = [session["user_id"]]
 
         if selected_category:
                 query += " AND expenses.category = ?"
@@ -134,12 +162,104 @@ def index():
     )
 
 
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    error = None
+    username = ""
+    
+    if request.method == "POST":
+        username = request.form["username"].strip()
+        password = request.form["password"]
+        
+        if username == "":
+            error =  "ユーザー名を入力してください。"
+        elif password == "":
+            error = "パスワードを入力してください。"
+        else:
+            password_hash = generate_password_hash(password)
+            
+            try:
+                with sqlite3.connect(DATABASE) as conn:
+                    conn.execute(
+                        """
+                        INSERT INTO users (username, password_hash)
+                        VALUES (?, ?)
+                        """,
+                        (username, password_hash),
+                    )
+            except sqlite3.IntegrityError:
+                error = "そのユーザー名はすでに使われています。"
+            
+            else:
+                flash("ユーザー登録が完了しました。ログインしてください。")
+                return redirect(url_for("index"))
+
+    return render_template(
+        "register.html",
+        error = error,
+        username =  username
+    )
+    
+    
+@app.route("/login", methods = ["GET", "POST"])
+def login():
+    error = None
+    username = ""
+    
+    if request.method == "POST":
+            username = request.form["username"].strip()
+            password = request.form["password"]
+
+            if username == "":
+                error = "ユーザー名を入力してください。"
+            elif password == "":
+                error = "パスワードを入力してください。"
+            else:
+                with sqlite3.connect(DATABASE) as conn:
+                    conn.row_factory = sqlite3.Row
+                    user = conn.execute(
+                        """
+                        SELECT id, username, password_hash
+                        FROM users
+                        WHERE username = ?
+                        """,
+                        (username,),
+                    ).fetchone()
+                
+                if user is None:
+                    error = "ユーザー名またはパスワードが正しくありません。"
+                elif not check_password_hash(user["password_hash"], password):
+                    error = "ユーザー名またはパスワードが正しくありません。"
+                else:
+                    session["user_id"] = user["id"]
+                    session["username"] = user["username"]
+                    flash("ログインしました。")
+                    return redirect(url_for("index"))
+            
+    return render_template(
+        "login.html",
+        error = error,
+        username = username
+    )
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    flash("ログアウトしました。")
+    return redirect(url_for("index"))
+
+
 @app.route("/about")
 def about():
     return render_template("about.html")
 
 @app.route("/trips")
 def trips():
+    login_check = login_required()
+    if login_check:
+        return login_check
+    
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
         trips = conn.execute(
@@ -155,6 +275,7 @@ def trips():
                 COUNT(expenses.id) AS expense_count
             FROM trips
             LEFT JOIN expenses ON trips.id = expenses.trip_id
+            WHERE trips.user_id = ?
             GROUP BY 
                 trips.id,
                 trips.title,
@@ -163,8 +284,8 @@ def trips():
                 trips.stadium,
                 trips.memo
             ORDER BY trips.match_date DESC,trips.id DESC
-            """
-            
+            """,
+            (session["user_id"],),
         ).fetchall()
     
     return render_template("trips.html",trips=trips)
@@ -172,15 +293,19 @@ def trips():
 
 @app.route("/trips/<int:trip_id>")
 def trip_detail(trip_id):
+    login_check = login_required()
+    if login_check:
+        return login_check
+    
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
         trip = conn.execute(
             """
             SELECT id, title, match_date, opponent, stadium, memo
             FROM trips
-            WHERE id = ?
+            WHERE id = ? AND user_id = ?
             """,
-            (trip_id,),
+            (trip_id, session["user_id"]),
         ).fetchone()
         
         if trip is None:
@@ -190,10 +315,10 @@ def trip_detail(trip_id):
             """
                 SELECT id, category, amount, spent_on, memo
                 FROM expenses
-                WHERE trip_id = ?
+                WHERE trip_id = ? AND user_id = ?
                 ORDER BY spent_on DESC, id DESC
             """,
-            (trip_id,),
+            (trip_id, session["user_id"]),
         ).fetchall()
         
         expense_count = len(expenses)
@@ -224,6 +349,10 @@ def trip_detail(trip_id):
 
 @app.route("/trips/new", methods=["GET", "POST"])
 def new_trip():
+    login_check = login_required()
+    if login_check:
+        return login_check
+        
     error = None
     title = ""
     match_date = ""
@@ -248,10 +377,10 @@ def new_trip():
             with sqlite3.connect(DATABASE) as conn:
                 conn.execute(
                     """
-                    INSERT INTO trips (title, match_date, opponent, stadium, memo)
-                    VALUES (?, ?, ?, ?, ?)
+                    INSERT INTO trips (user_id, title, match_date, opponent, stadium, memo)
+                    VALUES (?, ?, ?, ?, ?, ?)
                     """,
-                    (title, match_date, opponent, stadium, memo),
+                    (session["user_id"], title, match_date, opponent, stadium, memo),
                 )
             flash("遠征を登録しました。")
             return redirect(url_for("trips"))        
@@ -269,6 +398,10 @@ def new_trip():
 
 @app.route("/trips/<int:trip_id>/edit", methods=["GET", "POST"])
 def edit_trip(trip_id):
+    login_check = login_required()
+    if login_check:
+        return login_check
+        
     error = None
     
     with sqlite3.connect(DATABASE) as conn:
@@ -277,9 +410,9 @@ def edit_trip(trip_id):
             """
             SELECT id, title, match_date, opponent, stadium, memo
             FROM trips
-            WHERE id = ?
+            WHERE id = ? AND user_id = ?
             """,
-            (trip_id,),
+            (trip_id, session["user_id"]),
             
         ).fetchone()
         
@@ -311,9 +444,9 @@ def edit_trip(trip_id):
                     """
                     UPDATE trips
                     SET title = ?, match_date = ?, opponent = ?, stadium = ?, memo = ?
-                    WHERE id = ?
+                    WHERE id = ? AND user_id = ?
                     """,
-                    (title, match_date, opponent, stadium, memo, trip_id),
+                    (title, match_date, opponent, stadium, memo, trip_id, session["user_id"]),
                 )
             
             flash("遠征を更新しました。")
@@ -333,24 +466,28 @@ def edit_trip(trip_id):
 
 @app.route("/trips/<int:trip_id>/delete")
 def confirm_delete_trip(trip_id):
+    login_check = login_required()
+    if login_check:
+        return login_check
+        
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
         trip = conn.execute(
             """
             SELECT id, title, match_date, opponent, stadium, memo
             FROM trips
-            WHERE id = ?
+            WHERE id = ? AND user_id = ?
             """,
-            (trip_id,),
+            (trip_id, session["user_id"]),
         ).fetchone()
         
         expense_count_row = conn.execute(
             """
             SELECT COUNT(*) AS expense_count
             FROM expenses
-            WHERE trip_id = ?
+            WHERE trip_id = ? AND user_id = ?
             """,
-            (trip_id,),
+            (trip_id, session["user_id"]),
             
         ).fetchone()
 
@@ -365,6 +502,10 @@ def confirm_delete_trip(trip_id):
 
 @app.route("/trips/<int:trip_id>/delete", methods={"POST"})
 def delete_trip(trip_id):
+    login_check = login_required()
+    if login_check:
+        return login_check
+        
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
         trip = conn.execute(
@@ -379,9 +520,9 @@ def delete_trip(trip_id):
             """
             SELECT COUNT(*) AS expense_count
             FROM expenses
-            WHERE trip_id = ?
+            WHERE trip_id = ? AND user_id = ?
             """,
-            (trip_id,),
+            (trip_id, session["user_id"]),
         ).fetchone()
         
         expense_count = expense_count_row["expense_count"]
@@ -390,8 +531,10 @@ def delete_trip(trip_id):
             flash("支出が紐づいている遠征は削除できません。")
             return redirect(url_for("trips"))
         conn.execute(
-            "DELETE FROM trips WHERE id = ?",
-            (trip_id,),
+            """DELETE FROM trips 
+            WHERE id = ? AND user_id = ?
+            """,
+            (trip_id, session["user_id"]),
         )
     flash("遠征を削除しました。")
     return redirect(url_for("trips"))
@@ -399,6 +542,11 @@ def delete_trip(trip_id):
         
 @app.route("/expenses/new", methods=["GET", "POST"])
 def new_expense():
+    
+    login_check = login_required()
+    if login_check:
+        return login_check
+    
     error = None
     spent_on = date.today().isoformat()
     category = ""
@@ -409,6 +557,8 @@ def new_expense():
     trip = None
 
     if request.method == "GET" and trip_id:
+        if trip_id and not validate_trip_owner(trip_id):
+            abort(404)
         with sqlite3.connect(DATABASE) as conn:
             conn.row_factory = sqlite3.Row
             trip = conn.execute(
@@ -432,6 +582,10 @@ def new_expense():
         trip_id = request.form["trip_id"].strip()
         return_trip_id = request.form.get("return_trip_id", "").strip()
         
+        if not validate_trip_owner(trip_id):
+            abort(404)
+
+        
         if trip_id == "":
             trip_id = None
 
@@ -441,9 +595,9 @@ def new_expense():
         if error is None:
             with sqlite3.connect(DATABASE) as conn:
                 conn.execute(
-                    """INSERT INTO expenses (trip_id, category, amount, spent_on, memo)
-                    VALUES (?, ?, ?, ?, ?)""",
-                    (trip_id, category, amount, spent_on, memo),
+                    """INSERT INTO expenses (user_id, trip_id, category, amount, spent_on, memo)
+                    VALUES (?, ?, ?, ?, ?, ?)""",
+                    (session["user_id"], trip_id, category, amount, spent_on, memo),
                 )
             flash("支出を登録できました。")
             if return_trip_id:
@@ -457,9 +611,10 @@ def new_expense():
             """
             SELECT id, title, match_date, opponent
             FROM trips
+            WHERE user_id = ?
             ORDER BY match_date DESC, id DESC
-            """
-            
+            """,
+        (session["user_id"],),
         ).fetchall()
     
     display_trip_id = str(trip_id) if trip_id is not None else ""
@@ -480,6 +635,10 @@ def new_expense():
 
 @app.route("/expenses/<int:expense_id>/edit", methods=["GET", "POST"])
 def edit_expense(expense_id):
+    login_check = login_required()
+    if login_check:
+        return login_check
+        
     error = None
     return_trip_id = request.args.get("return_trip_id","")
     with sqlite3.connect(DATABASE) as conn:
@@ -487,8 +646,9 @@ def edit_expense(expense_id):
         expense = conn.execute(
             """SELECT id, trip_id, category, amount, spent_on, memo
             FROM expenses
-            WHERE id = ?""",
-            (expense_id,),
+            WHERE id = ? AND user_id = ?
+            """,
+            (expense_id, session["user_id"]),
         ).fetchone()
         
     with sqlite3.connect(DATABASE) as conn:
@@ -497,8 +657,10 @@ def edit_expense(expense_id):
             """
                 SELECT id, title, match_date, opponent
                 FROM trips
+                WHERE user_id = ?
                 ORDER BY match_date DESC, id DESC
-            """   
+            """,
+            (session["user_id"],),
         ).fetchall()
 
     if expense is None:
@@ -518,6 +680,9 @@ def edit_expense(expense_id):
         trip_id = request.form["trip_id"].strip()
         return_trip_id = request.form.get("return_trip_id","").strip()
 
+        if not validate_trip_owner(trip_id):
+            abort(404)
+            
         if trip_id == "":
             trip_id = None
         
@@ -528,8 +693,10 @@ def edit_expense(expense_id):
                 conn.execute(
                     """UPDATE expenses
                     SET trip_id = ?, category = ?, amount = ?, spent_on = ?, memo = ?
-                    WHERE id = ?""",
-                    (trip_id, category, amount, spent_on, memo, expense_id),
+                    WHERE id = ? AND user_id = ?
+                    """,
+                    (trip_id, category, amount, spent_on, memo, expense_id,
+                    session["user_id"],),
                 )
             flash("支出を更新しました。")
             if return_trip_id:
@@ -554,6 +721,10 @@ def edit_expense(expense_id):
 
 @app.route("/expenses/<int:expense_id>/delete", methods=["GET"])
 def confirm_delete_expense(expense_id):
+    login_check = login_required()
+    if login_check:
+        return login_check
+        
     return_trip_id = request.args.get("return_trip_id","")
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
@@ -568,9 +739,9 @@ def confirm_delete_expense(expense_id):
                 trips.title AS trip_title
             FROM expenses
             LEFT JOIN trips ON expenses.trip_id = trips.id
-            WHERE expenses.id = ?
+            WHERE expenses.id = ? AND expenses.user_id = ?
             """,
-            (expense_id,)
+            (expense_id, session["user_id"]),
         ).fetchone()
 
     if expense is None:
@@ -584,14 +755,18 @@ def confirm_delete_expense(expense_id):
 
 @app.route("/expenses/<int:expense_id>/delete", methods=["POST"])
 def delete_expense(expense_id):
-    
+    login_check = login_required()
+    if login_check:
+        return login_check
+        
     return_trip_id = request.form.get("return_trip_id","").strip()
     
     with sqlite3.connect(DATABASE) as conn:
         conn.execute(
             """DELETE FROM expenses
-            WHERE id = ?""",
-            (expense_id,),
+            WHERE id = ? AND user_id = ?
+            """,
+            (expense_id, session["user_id"]),
         )
     flash("支出を削除しました。")
     

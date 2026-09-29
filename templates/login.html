@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}ログイン{% endblock %}
+
+{% block content %}
+<h2>ログイン</h2>
+
+{% if error %}
+    <p class="error">{{ error }}</p>
+{% endif %}
+
+<form method="post">
+    <label>
+        ユーザー名
+        <input type="text" name="username" value="{{ username }}">
+    </label>
+
+    <label>
+        パスワード
+        <input type="password" name="password">
+    </label>
+
+    <button type="submit">ログイン</button>
+</form>
+
+<p>アカウントを持っていない場合は、ユーザー登録をしてください。</p>
+{% endblock %}
