@@ -348,10 +348,10 @@ def new_trip():
             with sqlite3.connect(DATABASE) as conn:
                 conn.execute(
                     """
-                    INSERT INTO trips (title, match_date, opponent, stadium, memo)
-                    VALUES (?, ?, ?, ?, ?)
+                    INSERT INTO trips (user_id, title, match_date, opponent, stadium, memo)
+                    VALUES (?, ?, ?, ?, ?, ?)
                     """,
-                    (title, match_date, opponent, stadium, memo),
+                    (session["user_id"], title, match_date, opponent, stadium, memo),
                 )
             flash("遠征を登録しました。")
             return redirect(url_for("trips"))        
@@ -558,9 +558,9 @@ def new_expense():
         if error is None:
             with sqlite3.connect(DATABASE) as conn:
                 conn.execute(
-                    """INSERT INTO expenses (trip_id, category, amount, spent_on, memo)
-                    VALUES (?, ?, ?, ?, ?)""",
-                    (trip_id, category, amount, spent_on, memo),
+                    """INSERT INTO expenses (user_id, trip_id, category, amount, spent_on, memo)
+                    VALUES (?, ?, ?, ?, ?, ?)""",
+                    (session["user_id"], trip_id, category, amount, spent_on, memo),
                 )
             flash("支出を登録できました。")
             if return_trip_id:
