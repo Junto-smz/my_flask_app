@@ -31,6 +31,23 @@ def login_required():
         return redirect(url_for("login"))
     return None
 
+
+def validate_trip_owner(trip_id):
+    if trip_id == "":
+        return True
+    
+    with sqlite3.connect(DATABASE) as conn:
+        trip = conn.execute(
+            """
+            SELECT id
+            FROM trips
+            WHERE id = ? AND user_id = ?
+            """,
+            (trip_id, session["user_id"]),
+        ).fetchone()
+    
+    return trip is not None
+
 @app.template_filter("yen")
 def yen_filter(amount):
     return f'{amount:,}円'
@@ -563,6 +580,10 @@ def new_expense():
         trip_id = request.form["trip_id"].strip()
         return_trip_id = request.form.get("return_trip_id", "").strip()
         
+        if not validate_trip_owner(trip_id):
+            abort(404)
+
+        
         if trip_id == "":
             trip_id = None
 
@@ -657,6 +678,9 @@ def edit_expense(expense_id):
         trip_id = request.form["trip_id"].strip()
         return_trip_id = request.form.get("return_trip_id","").strip()
 
+        if not validate_trip_owner(trip_id):
+            abort(404)
+            
         if trip_id == "":
             trip_id = None
         
