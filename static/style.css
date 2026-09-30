@@ -210,3 +210,79 @@ td a {
 small {
     color: #cc0000;
 }
+
+@media (max-width: 600px){
+    body{
+        font-size: 15px;
+    }
+    
+    header {
+        padding: 16px;
+    }
+
+    header h1 {
+        font-size: 1.4rem;
+        line-height: 1.4;
+    }
+
+    nav {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    nav a,
+    nav span {
+        display: block;
+    }
+
+    main {
+        padding: 12px;
+    }
+
+    form {
+        padding: 12px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 12px;
+    }
+
+    input,
+    select,
+    textarea,
+    button {
+        width: 100%;
+        box-sizing: border-box;
+        font-size: 16px;
+    }
+
+    button {
+        padding: 10px;
+        margin-top: 8px;
+    }
+
+    table {
+        width: 100%;
+        font-size: 14px;
+    }
+
+    th,
+    td {
+        padding: 8px;
+    }
+
+    td a {
+        display: inline-block;
+        margin-bottom: 6px;
+    }
+}
+
+table {
+    width: 100%;
+}
+
+main {
+    overflow-x: auto;
+}
