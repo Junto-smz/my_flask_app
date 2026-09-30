@@ -118,19 +118,22 @@ def index():
             """
             SELECT category, SUM(amount) AS total
             FROM expenses
+            WHERE user_id = ?
             GROUP BY category
             ORDER BY total DESC
-            """
+            """,
+            (session["user_id"],)
         ).fetchall()
 
         monthly_totals = conn.execute(
             """
             SELECT substr(spent_on, 1, 7) AS month, SUM(amount) AS total
             FROM expenses
-            WHERE spent_on IS NOT NULL AND spent_on != ''
+            WHERE spent_on IS NOT NULL AND spent_on != '' AND user_id = ?
             GROUP BY month
             ORDER BY month DESC
-            """
+            """,
+            (session["user_id"],)
         ).fetchall()
         
         months = conn.execute(
