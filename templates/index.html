@@ -1,30 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}支出一覧{% endblock %}
+{% block title %}トップ{% endblock %}
 
 {% block content %}
     <p>{{ description }}</p>
 
     <h2>サマリー</h2>
     <p class="total-amount">合計金額：{{ total_amount | yen }}</p>
-
-    <h2>月別金額</h2>
-    {% if monthly_totals %}
-        <table>
-            <tr>
-                <th>年月</th>
-                <th>合計金額</th>
-            </tr>
-            {% for monthly_total in monthly_totals %}
-                <tr>
-                    <td>{{ monthly_total.month }}</td>
-                    <td>{{ monthly_total.total | yen }}</td>
-                </tr>
-            {% endfor %}
-        </table>
-    {% else %}
-        <p>日付付きの支出はまだ登録されていません。</p>
-    {% endif %}
 
     <h2>カテゴリ別合計</h2>
     {% if category_totals %}
@@ -44,90 +26,22 @@
         <p>支出はまだ登録されていません。</p>
     {% endif %}
 
-    <h2>支出一覧</h2>
-
-    <form method="get" action="{{url_for('index') }}">
-        <label for="category">カテゴリで絞り込み</label>
-        <select id="category" name="category">
-            <option value="">すべて</option>
-            {% for category in categories %}
-                <option value="{{category}}" {% if selected_category == category %}selected{% endif %}>
-                    {{category}}
-                </option>
-            {% endfor %}
-        </select>
-
-        <label for="month">月で絞り込み</label>
-        <select id="month" name="month">
-            <option value="">すべて</option>
-            {% for month in months %}
-                <option value="{{ month.month }}" {% if selected_month == month.month %}selected{% endif %}>
-                    {{month.month}}
-                </option>
-            {% endfor %}
-        </select> 
-
-        <label>メモ検索:</label>
-        <input type="text" name="keyword" value="{{ keyword }}" placeholder="例:新幹線、ホテル">
-
-
-        <button type="submit">絞り込み</button>
-    </form>
-
-{% if selected_category or selected_month or keyword %}
-    <p>現在の絞り込み:
-    {% if selected_category %}
-        カテゴリ_｛{{ selected_category }}｝
-    {% endif %}
-
-    {% if selected_month %}
-        / 月_｛{{ selected_month }}｝
-    {% endif %}
-
-    {% if keyword %}
-        /メモ｛{{ keyword }}｝
-    {% endif %}
-    </p>
-{% endif %}
-
-{% if selected_category or selected_month or keyword %}
-    <p>
-        <a href="{{url_for('index') }}">絞り込みを解除</a>
-    </p>
-{% endif %}
-    {% if expenses %}
+    <h2>月別金額</h2>
+    {% if monthly_totals %}
         <table>
             <tr>
-                <th>ID</th>
-                <th>支出日</th>
-                <th>遠征名</th>
-                <th>カテゴリ</th>
-                <th>金額</th>
-                <th>メモ</th>
-                <th>操作</th>
+                <th>年月</th>
+                <th>合計金額</th>
             </tr>
-            {% for expense in expenses %}
+            {% for monthly_total in monthly_totals %}
                 <tr>
-                    <td>{{ expense.id }}</td>
-                    <td>{{ expense.spent_on or "未設定" }}</td>
-                    <td>
-                        {% if expense.trip_title %}
-                            {{ expense.trip_title }}
-                        {% else %}
-                            <small>遠征未選択</small>  
-                        {% endif %}
-                    </td>
-                    <td>{{ expense.category }}</td>
-                    <td>{{ expense.amount | yen }}</td>
-                    <td>{{ expense.memo or "" }}</td>
-                    <td>
-                        <a href="{{ url_for('edit_expense', expense_id=expense.id) }}">編集</a>
-                        <a href="{{ url_for('confirm_delete_expense', expense_id=expense.id) }}">削除</a>
-                    </td>
+                    <td>{{ monthly_total.month }}</td>
+                    <td>{{ monthly_total.total | yen }}</td>
                 </tr>
             {% endfor %}
         </table>
     {% else %}
-        <p>該当する支出はありません。</p>
+        <p>日付付きの支出はまだ登録されていません。</p>
     {% endif %}
+
 {% endblock %}

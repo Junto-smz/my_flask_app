@@ -165,6 +165,99 @@ def index():
     )
 
 
+@app.route("/expenses")
+def expenses():
+    login_check = login_required()
+    if login_check:
+        return login_check
+    app_name = "Jリーグアウェイ遠征家計簿"
+    description = "遠征にかかった費用を記録・管理するアプリです。"
+    selected_category = request.args.get("category", "")
+    selected_month = request.args.get("month", "")    
+    keyword = request.args.get("keyword","").strip()
+    
+    with sqlite3.connect(DATABASE) as conn:
+        conn.row_factory = sqlite3.Row
+        query = """
+                    SELECT  expenses.id, 
+                            expenses.category,
+                            expenses.amount,
+                            expenses.spent_on,
+                            expenses.memo,
+                            trips.title AS trip_title
+                    FROM expenses
+                    LEFT JOIN trips ON expenses.trip_id = trips.id
+                    WHERE expenses.user_id = ?
+                """
+                
+        params = [session["user_id"]]
+
+        if selected_category:
+                query += " AND expenses.category = ?"
+                params.append(selected_category)
+            
+        if selected_month:
+                query += " AND substr(expenses.spent_on, 1, 7) = ?"
+                params.append(selected_month)
+        
+        if keyword:
+            query += " AND expenses.memo LIKE ?"
+            params.append(f"%{keyword}%")
+                
+        query += " ORDER BY expenses.spent_on DESC, expenses.id DESC"
+        
+        expenses = conn.execute(query,params).fetchall()
+
+        category_totals = conn.execute(
+            """
+            SELECT category, SUM(amount) AS total
+            FROM expenses
+            WHERE user_id = ?
+            GROUP BY category
+            ORDER BY total DESC
+            """,
+            (session["user_id"],)
+        ).fetchall()
+
+        monthly_totals = conn.execute(
+            """
+            SELECT substr(spent_on, 1, 7) AS month, SUM(amount) AS total
+            FROM expenses
+            WHERE spent_on IS NOT NULL AND spent_on != '' AND user_id = ?
+            GROUP BY month
+            ORDER BY month DESC
+            """,
+            (session["user_id"],)
+        ).fetchall()
+        
+        months = conn.execute(
+            """
+            SELECT DISTINCT substr(spent_on, 1, 7) AS month
+            FROM expenses
+            WHERE spent_on IS NOT NULL AND spent_on != ''
+            ORDER BY month DESC
+            """
+        ).fetchall()
+
+    total_amount = 0
+    for expense in expenses:
+        total_amount += expense["amount"]
+
+    return render_template(
+        "expenses.html",
+        app_name=app_name,
+        description=description,
+        expenses=expenses,
+        total_amount=total_amount,
+        category_totals=category_totals,
+        monthly_totals=monthly_totals,
+        categories = CATEGORIES,
+        selected_category = selected_category,
+        months = months,
+        selected_month = selected_month,
+        keyword = keyword
+    )
+
 @app.route("/register", methods=["GET", "POST"])
 def register():
     error = None
