@@ -55,6 +55,6 @@
     {% if return_trip_id %}
         <a href="{{ url_for('trip_detail', trip_id = return_trip_id) }}">遠征詳細へ戻る</a>
     {% else %}
-        <a href="{{ url_for('index') }}">トップページへ戻る</a>
+        <a href="{{ url_for('expenses') }}">支出検索へ戻る</a>
     {% endif %}
 {% endblock %}

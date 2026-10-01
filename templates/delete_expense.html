@@ -38,6 +38,6 @@
     {% if return_trip_id %}
         <a href="{{ url_for('trip_detail', trip_id=return_trip_id) }}">キャンセル</a>
     {% else %}
-        <a href="{{ url_for('index') }}">キャンセル</a>
+        <a href="{{ url_for('expenses') }}">キャンセル</a>
     {% endif %}
 {% endblock %}

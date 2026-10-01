@@ -129,21 +129,15 @@ def index():
             """
             SELECT substr(spent_on, 1, 7) AS month, SUM(amount) AS total
             FROM expenses
-            WHERE spent_on IS NOT NULL AND spent_on != '' AND user_id = ?
+            WHERE spent_on IS NOT NULL 
+            AND spent_on != '' 
+            AND user_id = ?
             GROUP BY month
             ORDER BY month DESC
             """,
             (session["user_id"],)
         ).fetchall()
         
-        months = conn.execute(
-            """
-            SELECT DISTINCT substr(spent_on, 1, 7) AS month
-            FROM expenses
-            WHERE spent_on IS NOT NULL AND spent_on != ''
-            ORDER BY month DESC
-            """
-        ).fetchall()
 
     total_amount = 0
     for expense in expenses:
@@ -159,7 +153,6 @@ def index():
         monthly_totals=monthly_totals,
         categories = CATEGORIES,
         selected_category = selected_category,
-        months = months,
         selected_month = selected_month,
         keyword = keyword
     )
@@ -234,9 +227,12 @@ def expenses():
             """
             SELECT DISTINCT substr(spent_on, 1, 7) AS month
             FROM expenses
-            WHERE spent_on IS NOT NULL AND spent_on != ''
+            WHERE spent_on IS NOT NULL 
+            AND spent_on != ''
+            AND user_id = ?
             ORDER BY month DESC
-            """
+            """,
+            (session["user_id"],),
         ).fetchall()
 
     total_amount = 0
@@ -288,7 +284,7 @@ def register():
             
             else:
                 flash("ユーザー登録が完了しました。ログインしてください。")
-                return redirect(url_for("index"))
+                return redirect(url_for("login"))
 
     return render_template(
         "register.html",
@@ -423,11 +419,11 @@ def trip_detail(trip_id):
             """
             SELECT category, SUM(amount) AS total
             FROM expenses
-            WHERE trip_id = ?
+            WHERE trip_id = ? AND user_id = ?
             GROUP BY category
             ORDER BY total DESC
             """,
-            (trip_id,),
+            (trip_id, session["user_id"]),
             
         ).fetchall()
     total_amount = 0
@@ -605,8 +601,11 @@ def delete_trip(trip_id):
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
         trip = conn.execute(
-            "SELECT id FROM trips WHERE id = ?",
-            (trip_id,),
+            """SELECT id
+            FROM trips
+            WHERE id = ? AND user_id = ?
+            """,
+            (trip_id, session["user_id"]),
         ).fetchone()
         
         if trip is None:
@@ -696,10 +695,13 @@ def new_expense():
                     (session["user_id"], trip_id, category, amount, spent_on, memo),
                 )
             flash("支出を登録できました。")
-            if return_trip_id:
+            if trip_id:
                 return redirect(url_for("trip_detail", trip_id=trip_id))
 
-            return redirect(url_for("index"))
+            if return_trip_id:
+                return redirect(url_for("trip_detail", trip_id=return_trip_id))
+
+            return redirect(url_for("expenses"))
     
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
@@ -798,7 +800,7 @@ def edit_expense(expense_id):
             if return_trip_id:
                 return redirect(url_for("trip_detail", trip_id = return_trip_id))
 
-            return redirect(url_for("index"))
+            return redirect(url_for("expenses"))
 
     return render_template(
         "edit_expense.html",
@@ -869,7 +871,7 @@ def delete_expense(expense_id):
     if return_trip_id:
         return redirect(url_for("trip_detail", trip_id = return_trip_id))
     
-    return redirect(url_for("index"))
+    return redirect(url_for("expenses"))
 
 @app.errorhandler(404)
 def page_not_found(error):
