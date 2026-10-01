@@ -8,24 +8,6 @@
     <h2>サマリー</h2>
     <p class="total-amount">合計金額：{{ total_amount | yen }}</p>
 
-    <h2>月別金額</h2>
-    {% if monthly_totals %}
-        <table>
-            <tr>
-                <th>年月</th>
-                <th>合計金額</th>
-            </tr>
-            {% for monthly_total in monthly_totals %}
-                <tr>
-                    <td>{{ monthly_total.month }}</td>
-                    <td>{{ monthly_total.total | yen }}</td>
-                </tr>
-            {% endfor %}
-        </table>
-    {% else %}
-        <p>日付付きの支出はまだ登録されていません。</p>
-    {% endif %}
-
     <h2>カテゴリ別合計</h2>
     {% if category_totals %}
         <table>
@@ -42,6 +24,24 @@
         </table>
     {% else %}
         <p>支出はまだ登録されていません。</p>
+    {% endif %}
+
+    <h2>月別金額</h2>
+    {% if monthly_totals %}
+        <table>
+            <tr>
+                <th>年月</th>
+                <th>合計金額</th>
+            </tr>
+            {% for monthly_total in monthly_totals %}
+                <tr>
+                    <td>{{ monthly_total.month }}</td>
+                    <td>{{ monthly_total.total | yen }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>日付付きの支出はまだ登録されていません。</p>
     {% endif %}
 
 {% endblock %}
