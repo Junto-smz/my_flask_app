@@ -4,6 +4,10 @@
 
 {% block content %}
     <p>{{ description }}</p>
+    <p>まだ遠征を１つも登録されていない方は
+        <a href="{{ url_for('new_trip') }}">遠征を登録する</a>
+        ことをお勧めします。
+    </p>
 
     <h2>サマリー</h2>
     <p class="total-amount">合計金額：{{ total_amount | yen }}</p>

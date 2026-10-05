@@ -339,7 +339,7 @@ def login():
 def logout():
     session.clear()
     flash("ログアウトしました。")
-    return redirect(url_for("index"))
+    return redirect(url_for("login"))
 
 
 @app.route("/about")
