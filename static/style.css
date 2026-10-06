@@ -286,3 +286,7 @@ table {
 main {
     overflow-x: auto;
 }
+
+td#total {
+    font-weight: bold;
+}
