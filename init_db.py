@@ -21,7 +21,8 @@ with sqlite3.connect("./database/database.db") as conn:
             match_date TEXT NOT NULL,
             opponent TEXT NOT NULL,
             stadium TEXT,
-            memo TEXT
+            memo TEXT,
+            season TEXT
         )
         """
     )
