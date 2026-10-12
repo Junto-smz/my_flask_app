@@ -25,6 +25,11 @@ CATEGORIES = [
     "その他",
 ]
 
+SEASONS = [
+    "百年構想リーグ",
+    "2026/27シーズン"
+]
+
 def login_required():
     if not session.get("user_id"):
         flash("ログインしてください。")
@@ -451,6 +456,7 @@ def new_trip():
     opponent = ""
     stadium = ""
     memo = ""
+    season = ""
     
     if request.method == "POST":
         title = request.form["title"].strip()
@@ -458,7 +464,7 @@ def new_trip():
         opponent = request.form["opponent"].strip()
         stadium = request.form["stadium"].strip()
         memo = request.form["memo"].strip()
-
+        season = request.form["season"].strip()
         if title == "":
             error = "遠征名を入力してください。"
         elif match_date == "":
@@ -469,10 +475,10 @@ def new_trip():
             with sqlite3.connect(DATABASE) as conn:
                 conn.execute(
                     """
-                    INSERT INTO trips (user_id, title, match_date, opponent, stadium, memo)
-                    VALUES (?, ?, ?, ?, ?, ?)
+                    INSERT INTO trips (user_id, title, season, match_date, opponent, stadium, memo)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
                     """,
-                    (session["user_id"], title, match_date, opponent, stadium, memo),
+                    (session["user_id"], title, season, match_date, opponent, stadium, memo),
                 )
             flash("遠征を登録しました。")
             return redirect(url_for("trips"))        
@@ -484,7 +490,9 @@ def new_trip():
         match_date = match_date,
         opponent = opponent,
         stadium = stadium,
-        memo = memo
+        memo = memo,
+        season = season,
+        seasons = SEASONS
     )
 
 

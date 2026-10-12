@@ -11,6 +11,22 @@
 
     <form method="POST">
         <div>
+            <label for="season">シーズン</label>
+            <select id="season" name="season">
+                <option value="">選択してください。</option>
+
+                {% for season_option in seasons %}
+                    <option 
+                        value="{{ season_option }}"
+                        {% if season == season_option %}selected{% endif %}
+                        >
+                        {{ season_option }}
+                        </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div>
             <label for="title">遠征名</label>
             <input type="text" id="title" name="title" value="{{ title }}">
         </div>
