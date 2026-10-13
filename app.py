@@ -508,7 +508,7 @@ def edit_trip(trip_id):
         conn.row_factory = sqlite3.Row
         trip = conn.execute(
             """
-            SELECT id, title, match_date, opponent, stadium, memo
+            SELECT id, title, season, match_date, opponent, stadium, memo
             FROM trips
             WHERE id = ? AND user_id = ?
             """,
@@ -524,6 +524,7 @@ def edit_trip(trip_id):
     opponent = trip["opponent"]
     stadium = trip["stadium"] or ""
     memo = trip["memo"] or ""
+    season = trip["season"] or ""
     
     if request.method == "POST":
         title = request.form["title"].strip()
@@ -531,6 +532,7 @@ def edit_trip(trip_id):
         opponent = request.form["opponent"].strip()
         stadium = request.form["stadium"].strip()
         memo = request.form["memo"].strip()
+        season = request.form["season"].strip()
 
         if title == "":
             error = "遠征名を入力してください。"
@@ -543,10 +545,10 @@ def edit_trip(trip_id):
                 conn.execute(
                     """
                     UPDATE trips
-                    SET title = ?, match_date = ?, opponent = ?, stadium = ?, memo = ?
+                    SET title = ?,season = ?, match_date = ?, opponent = ?, stadium = ?, memo = ?
                     WHERE id = ? AND user_id = ?
                     """,
-                    (title, match_date, opponent, stadium, memo, trip_id, session["user_id"]),
+                    (title, season, match_date, opponent, stadium, memo, trip_id, session["user_id"]),
                 )
             
             flash("遠征を更新しました。")
@@ -561,6 +563,8 @@ def edit_trip(trip_id):
         opponent=opponent,
         stadium=stadium,
         memo=memo,
+        season=season,
+        SEASONS=SEASONS
     )
 
 

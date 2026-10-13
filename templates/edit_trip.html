@@ -16,6 +16,22 @@
         </div>
 
         <div>
+            <label for="season">シーズン</label>
+            <select id="season" name="season">
+                <option value="">選択してください</option>
+
+                {% for season_option in SEASONS %}
+                    <option
+                        value="{{ season_option }}"
+                        {% if season == season_option %}selected{% endif %}
+                        >
+                            {{season_option}}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
             <label for="match_date">試合日</label>
             <input type="date" id="match_date" name="match_date" value="{{ match_date }}">
         </div>
