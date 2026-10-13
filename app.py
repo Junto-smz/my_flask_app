@@ -357,10 +357,19 @@ def trips():
     if login_check:
         return login_check
     
+    selected_season = request.args.get("season","").strip()
+    
+    params = [session["user_id"]]
+    season_condition =""
+    
+    if selected_season:
+        season_condition = " AND trips.season = ?"
+        params.append(selected_season)
+        
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
         trips = conn.execute(
-            """
+            f"""
             SELECT
                 trips.id,
                 trips.title,
@@ -374,6 +383,7 @@ def trips():
             FROM trips
             LEFT JOIN expenses ON trips.id = expenses.trip_id
             WHERE trips.user_id = ?
+            {season_condition}
             GROUP BY 
                 trips.id,
                 trips.title,
@@ -384,10 +394,14 @@ def trips():
                 trips.memo
             ORDER BY trips.match_date DESC,trips.id DESC
             """,
-            (session["user_id"],),
+            (params),
         ).fetchall()
     
-    return render_template("trips.html",trips=trips)
+    return render_template(
+            "trips.html",
+            trips=trips,
+            seasons = SEASONS,
+            selected_season = selected_season)
 
 
 @app.route("/trips/<int:trip_id>")
@@ -566,7 +580,7 @@ def edit_trip(trip_id):
         stadium=stadium,
         memo=memo,
         season=season,
-        SEASONS=SEASONS
+        seasons=SEASONS
     )
 
 

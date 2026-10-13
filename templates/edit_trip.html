@@ -20,7 +20,7 @@
             <select id="season" name="season">
                 <option value="">選択してください</option>
 
-                {% for season_option in SEASONS %}
+                {% for season_option in seasons %}
                     <option
                         value="{{ season_option }}"
                         {% if season == season_option %}selected{% endif %}
