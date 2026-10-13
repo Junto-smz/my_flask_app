@@ -86,6 +86,7 @@ def index():
     selected_category = request.args.get("category", "")
     selected_month = request.args.get("month", "")    
     keyword = request.args.get("keyword","").strip()
+    selected_season = request.args.get("season", "").strip()
     
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
@@ -114,33 +115,62 @@ def index():
         if keyword:
             query += " AND expenses.memo LIKE ?"
             params.append(f"%{keyword}%")
+        
+        if selected_season:
+            query += " AND trips.season = ?"
+            params.append(selected_season)
                 
         query += " ORDER BY expenses.spent_on DESC, expenses.id DESC"
         
         expenses = conn.execute(query,params).fetchall()
+        
+        category_query = """
+            SELECT expenses.category, SUM(expenses.amount) AS total
+            FROM expenses
+            LEFT JOIN trips ON expenses.trip_id = trips.id
+            WHERE expenses.user_id = ?
+        """
+        
+        category_params = [session["user_id"]]
+        
+        if selected_season:
+            category_query += " AND trips.season = ?"
+            category_params.append(selected_season)
+            
+        category_query += """
+            GROUP BY expenses.category
+            ORDER BY total DESC
+        """
+        
 
         category_totals = conn.execute(
-            """
-            SELECT category, SUM(amount) AS total
-            FROM expenses
-            WHERE user_id = ?
-            GROUP BY category
-            ORDER BY total DESC
-            """,
-            (session["user_id"],)
+            category_query,
+            category_params
         ).fetchall()
-
-        monthly_totals = conn.execute(
-            """
+        
+        monthly_query ="""
             SELECT substr(spent_on, 1, 7) AS month, SUM(amount) AS total
             FROM expenses
+            LEFT JOIN trips ON expenses.trip_id = trips.id
             WHERE spent_on IS NOT NULL 
             AND spent_on != '' 
-            AND user_id = ?
+            AND expenses.user_id = ?
+        """
+        
+        monthly_params = [session["user_id"]]
+        
+        if selected_season:
+            monthly_query += " AND trips.season = ?"
+            monthly_params.append(selected_season)
+            
+        monthly_query += """
             GROUP BY month
             ORDER BY month DESC
-            """,
-            (session["user_id"],)
+        """
+        
+        monthly_totals = conn.execute(
+            monthly_query,
+            monthly_params
         ).fetchall()
         
 
@@ -159,7 +189,9 @@ def index():
         categories = CATEGORIES,
         selected_category = selected_category,
         selected_month = selected_month,
-        keyword = keyword
+        keyword = keyword,
+        seasons = SEASONS,
+        selected_season = selected_season
     )
 
 

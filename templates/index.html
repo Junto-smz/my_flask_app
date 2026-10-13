@@ -10,7 +10,29 @@
     </p>
 
     <h2>サマリー</h2>
-    <p class="total-amount">合計金額：{{ total_amount | yen }}</p>
+
+    <form method="get" action="{{ url_for('index') }}">
+        <label for="season">シーズンを選択する</label>
+
+        <select id="season" name="season">
+            <option value="">選択なし</option>
+
+            {% for season_option in seasons %}
+                <option 
+                    value="{{ season_option}}"
+                    {% if selected_season == season_option %}selected{% endif%}
+                    >
+                    {{ season_option }}
+                    </option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">選択</button>
+    </form>
+
+    <p class="total-amount"><b>合計金額：{{ total_amount | yen }}</b></p>
+
+
 
     <h2>カテゴリ別合計</h2>
     {% if category_totals %}
