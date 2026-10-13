@@ -13,6 +13,7 @@
         <table>
             <thead>
                 <tr>
+                    <th>シーズン</th>
                     <th>試合日</th>
                     <th>遠征名</th>
                     <th>対戦相手</th>
@@ -25,6 +26,7 @@
             <tbody>
                 {% for trip in trips %}
                     <tr>
+                        <td>{{ trip.season or "未選択" }}</td>
                         <td>{{ trip.match_date }}</td>
                         <td>
                             <a href="{{ url_for('trip_detail', trip_id = trip.id) }}">

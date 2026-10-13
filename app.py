@@ -364,6 +364,7 @@ def trips():
             SELECT
                 trips.id,
                 trips.title,
+                trips.season,
                 trips.match_date,
                 trips.opponent,
                 trips.stadium,
@@ -376,6 +377,7 @@ def trips():
             GROUP BY 
                 trips.id,
                 trips.title,
+                trips.season,
                 trips.match_date,
                 trips.opponent,
                 trips.stadium,
