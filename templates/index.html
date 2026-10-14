@@ -27,11 +27,13 @@
 
         <button type="submit">選択</button>
     </form>
-    
+
+<section class="dashboard-card">
     <h2>直近の遠征</h2>
 
     {% if latest_trips %}
-        <table>
+        <div class="table-wrapper">
+        <table class="latest-trips-table">
             <thead>
                 <tr>
                     <th>シーズン</th>
@@ -57,9 +59,11 @@
                 {% endfor %}
             </tbody>
         </table>
+    </div>
     {% else %}
         <p>該当する遠征はありません。</p>
     {% endif %}
+</section>
 
     <h2>サマリー</h2>
 
