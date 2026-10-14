@@ -446,7 +446,7 @@ def trip_detail(trip_id):
         conn.row_factory = sqlite3.Row
         trip = conn.execute(
             """
-            SELECT id, title, match_date, opponent, stadium, memo
+            SELECT id, title,season, match_date, opponent, stadium, memo
             FROM trips
             WHERE id = ? AND user_id = ?
             """,
@@ -490,7 +490,7 @@ def trip_detail(trip_id):
         total_amount = total_amount,
         category_totals = category_totals,
         expense_count = expense_count,
-    )
+        )
 
 @app.route("/trips/new", methods=["GET", "POST"])
 def new_trip():
