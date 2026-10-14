@@ -174,6 +174,51 @@ def index():
         ).fetchall()
         
 
+        latest_trip_query = """
+            SELECT 
+                trips.id,
+                trips.title,
+                trips. season,
+                trips.match_date,
+                trips.opponent,
+                trips.stadium,
+                COALESCE(SUM(expenses.amount), 0) AS total_amount,
+                COUNT(expenses.id) AS expense_count
+                FROM trips
+                LEFT JOIN expenses
+                    ON trips.id = expenses.trip_id
+                    AND expenses.user_id = ?
+                WHERE trips.user_id = ?
+        """
+        
+        latest_trip_params = [
+            session["user_id"],
+            session["user_id"],
+        ]
+        
+        if selected_season:
+            latest_trip_query += " AND trips.season = ?"
+            latest_trip_params.append(selected_season)
+        
+        latest_trip_query += """
+            GROUP BY 
+                trips.id,
+                trips.title,
+                trips.season,
+                trips.match_date,
+                trips.opponent,
+                trips.stadium
+            ORDER BY trips.match_date DESC, trips.id DESC
+            LIMIT 3
+        """
+        
+        latest_trips = conn.execute(
+            latest_trip_query,
+            latest_trip_params
+        ).fetchall()
+            
+        
+        
     total_amount = 0
     for expense in expenses:
         total_amount += expense["amount"]
@@ -191,7 +236,8 @@ def index():
         selected_month = selected_month,
         keyword = keyword,
         seasons = SEASONS,
-        selected_season = selected_season
+        selected_season = selected_season,
+        latest_trips = latest_trips,
     )
 
 
