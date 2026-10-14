@@ -29,7 +29,11 @@
     </form>
 
 <section class="dashboard-card">
-    <h2>直近の遠征</h2>
+    {% if selected_season %}
+        <h2>直近の遠征 in {{ selected_season}}</h2>
+    {% else %}
+        <h2>直近の遠征</h2>
+    {% endif %}
 
     {% if latest_trips %}
         <div class="table-wrapper">
@@ -65,9 +69,12 @@
     {% endif %}
 </section>
 
-    <h2>サマリー</h2>
-
-    <p class="total-amount"><b>合計金額：{{ total_amount | yen }}</b></p>
+    {% if selected_season %}
+        <h2>サマリー in {{ selected_season }}</h2>
+    {% else %}
+        <h2>これまでの全ての遠征</h2>
+    {% endif %}
+    <p class="total-amount">{{ trip_count.trip_count }}遠征 / <b>合計金額：{{ total_amount | yen }}</b></p>
 
 
 
