@@ -290,3 +290,28 @@ main {
 td#total {
     font-weight: bold;
 }
+
+/* トップページ：ダッシュボード　*/
+.dashboard-card{
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px 0 20px;
+}
+
+.dashboard-card h2 {
+    margin-top: 0;
+}
+
+.table-wrapper {
+    overflow: auto;
+}
+
+.latest-trips-table tbody tr:hover{
+    background-color: #f7f7f7;
+}
+
+.latest-trips-table td a {
+    font-weight: bold;
+}

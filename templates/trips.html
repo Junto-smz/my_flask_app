@@ -5,6 +5,25 @@
 {% block content %}
     <h2>遠征一覧</h2>
 
+    <form method="get" action="{{url_for('trips') }}">
+        <label for="season">シーズン</label>
+
+        <select id="season" name="season">
+            <option value="">すべて</option>
+
+            {% for season_option in seasons %}
+                <option 
+                    value="{{ season_option }}"
+                    {% if selected_season == season_option %}selected{% endif %}
+                    >
+                    {{ season_option }}
+                    </option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">絞り込む</button>
+    </form>
+
 <p>
     <a href="{{ url_for('new_trip') }}">遠征を登録する</a>
 </p>
@@ -13,6 +32,7 @@
         <table>
             <thead>
                 <tr>
+                    <th>シーズン</th>
                     <th>試合日</th>
                     <th>遠征名</th>
                     <th>対戦相手</th>
@@ -25,6 +45,7 @@
             <tbody>
                 {% for trip in trips %}
                     <tr>
+                        <td>{{ trip.season or "未選択" }}</td>
                         <td>{{ trip.match_date }}</td>
                         <td>
                             <a href="{{ url_for('trip_detail', trip_id = trip.id) }}">

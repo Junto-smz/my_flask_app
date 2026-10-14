@@ -9,8 +9,67 @@
         ことをお勧めします。
     </p>
 
+    <form method="get" action="{{ url_for('index') }}">
+        <label for="season">シーズンを選択する</label>
+
+        <select id="season" name="season">
+            <option value="">選択なし</option>
+
+            {% for season_option in seasons %}
+                <option 
+                    value="{{ season_option}}"
+                    {% if selected_season == season_option %}selected{% endif%}
+                    >
+                    {{ season_option }}
+                    </option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">選択</button>
+    </form>
+
+<section class="dashboard-card">
+    <h2>直近の遠征</h2>
+
+    {% if latest_trips %}
+        <div class="table-wrapper">
+        <table class="latest-trips-table">
+            <thead>
+                <tr>
+                    <th>シーズン</th>
+                    <th>タイトル</th>
+                    <th>合計金額</th>
+                    <th>支出件数</th>
+                    <th>試合日</th>
+                    <th>対戦相手</th>
+                </tr>
+            </thead>
+            
+            <tbody>
+                {% for lt in latest_trips %}
+                    <tr>
+                        <td>{{ lt.season or "" }}</td>
+                        <td><a href="{{ url_for('trip_detail', trip_id = lt.id) }}">
+                            {{ lt.title }}</a></td>
+                        <td>{{ lt.total_amount | yen }}</td>
+                        <td>{{ lt.expense_count }}件</td>
+                        <td>{{ lt.match_date }}</td>
+                        <td>{{ lt.opponent}}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        <p>該当する遠征はありません。</p>
+    {% endif %}
+</section>
+
     <h2>サマリー</h2>
-    <p class="total-amount">合計金額：{{ total_amount | yen }}</p>
+
+    <p class="total-amount"><b>合計金額：{{ total_amount | yen }}</b></p>
+
+
 
     <h2>カテゴリ別合計</h2>
     {% if category_totals %}

@@ -86,6 +86,7 @@ def index():
     selected_category = request.args.get("category", "")
     selected_month = request.args.get("month", "")    
     keyword = request.args.get("keyword","").strip()
+    selected_season = request.args.get("season", "").strip()
     
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
@@ -114,36 +115,110 @@ def index():
         if keyword:
             query += " AND expenses.memo LIKE ?"
             params.append(f"%{keyword}%")
+        
+        if selected_season:
+            query += " AND trips.season = ?"
+            params.append(selected_season)
                 
         query += " ORDER BY expenses.spent_on DESC, expenses.id DESC"
         
         expenses = conn.execute(query,params).fetchall()
+        
+        category_query = """
+            SELECT expenses.category, SUM(expenses.amount) AS total
+            FROM expenses
+            LEFT JOIN trips ON expenses.trip_id = trips.id
+            WHERE expenses.user_id = ?
+        """
+        
+        category_params = [session["user_id"]]
+        
+        if selected_season:
+            category_query += " AND trips.season = ?"
+            category_params.append(selected_season)
+            
+        category_query += """
+            GROUP BY expenses.category
+            ORDER BY total DESC
+        """
+        
 
         category_totals = conn.execute(
-            """
-            SELECT category, SUM(amount) AS total
-            FROM expenses
-            WHERE user_id = ?
-            GROUP BY category
-            ORDER BY total DESC
-            """,
-            (session["user_id"],)
+            category_query,
+            category_params
         ).fetchall()
-
-        monthly_totals = conn.execute(
-            """
+        
+        monthly_query ="""
             SELECT substr(spent_on, 1, 7) AS month, SUM(amount) AS total
             FROM expenses
+            LEFT JOIN trips ON expenses.trip_id = trips.id
             WHERE spent_on IS NOT NULL 
             AND spent_on != '' 
-            AND user_id = ?
+            AND expenses.user_id = ?
+        """
+        
+        monthly_params = [session["user_id"]]
+        
+        if selected_season:
+            monthly_query += " AND trips.season = ?"
+            monthly_params.append(selected_season)
+            
+        monthly_query += """
             GROUP BY month
             ORDER BY month DESC
-            """,
-            (session["user_id"],)
+        """
+        
+        monthly_totals = conn.execute(
+            monthly_query,
+            monthly_params
         ).fetchall()
         
 
+        latest_trip_query = """
+            SELECT 
+                trips.id,
+                trips.title,
+                trips. season,
+                trips.match_date,
+                trips.opponent,
+                trips.stadium,
+                COALESCE(SUM(expenses.amount), 0) AS total_amount,
+                COUNT(expenses.id) AS expense_count
+                FROM trips
+                LEFT JOIN expenses
+                    ON trips.id = expenses.trip_id
+                    AND expenses.user_id = ?
+                WHERE trips.user_id = ?
+        """
+        
+        latest_trip_params = [
+            session["user_id"],
+            session["user_id"],
+        ]
+        
+        if selected_season:
+            latest_trip_query += " AND trips.season = ?"
+            latest_trip_params.append(selected_season)
+        
+        latest_trip_query += """
+            GROUP BY 
+                trips.id,
+                trips.title,
+                trips.season,
+                trips.match_date,
+                trips.opponent,
+                trips.stadium
+            ORDER BY trips.match_date DESC, trips.id DESC
+            LIMIT 3
+        """
+        
+        latest_trips = conn.execute(
+            latest_trip_query,
+            latest_trip_params
+        ).fetchall()
+            
+        
+        
     total_amount = 0
     for expense in expenses:
         total_amount += expense["amount"]
@@ -159,7 +234,10 @@ def index():
         categories = CATEGORIES,
         selected_category = selected_category,
         selected_month = selected_month,
-        keyword = keyword
+        keyword = keyword,
+        seasons = SEASONS,
+        selected_season = selected_season,
+        latest_trips = latest_trips,
     )
 
 
@@ -357,13 +435,23 @@ def trips():
     if login_check:
         return login_check
     
+    selected_season = request.args.get("season","").strip()
+    
+    params = [session["user_id"]]
+    season_condition =""
+    
+    if selected_season:
+        season_condition = " AND trips.season = ?"
+        params.append(selected_season)
+        
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
         trips = conn.execute(
-            """
+            f"""
             SELECT
                 trips.id,
                 trips.title,
+                trips.season,
                 trips.match_date,
                 trips.opponent,
                 trips.stadium,
@@ -373,19 +461,25 @@ def trips():
             FROM trips
             LEFT JOIN expenses ON trips.id = expenses.trip_id
             WHERE trips.user_id = ?
+            {season_condition}
             GROUP BY 
                 trips.id,
                 trips.title,
+                trips.season,
                 trips.match_date,
                 trips.opponent,
                 trips.stadium,
                 trips.memo
             ORDER BY trips.match_date DESC,trips.id DESC
             """,
-            (session["user_id"],),
+            (params),
         ).fetchall()
     
-    return render_template("trips.html",trips=trips)
+    return render_template(
+            "trips.html",
+            trips=trips,
+            seasons = SEASONS,
+            selected_season = selected_season)
 
 
 @app.route("/trips/<int:trip_id>")
@@ -398,7 +492,7 @@ def trip_detail(trip_id):
         conn.row_factory = sqlite3.Row
         trip = conn.execute(
             """
-            SELECT id, title, match_date, opponent, stadium, memo
+            SELECT id, title,season, match_date, opponent, stadium, memo
             FROM trips
             WHERE id = ? AND user_id = ?
             """,
@@ -442,7 +536,7 @@ def trip_detail(trip_id):
         total_amount = total_amount,
         category_totals = category_totals,
         expense_count = expense_count,
-    )
+        )
 
 @app.route("/trips/new", methods=["GET", "POST"])
 def new_trip():
@@ -508,7 +602,7 @@ def edit_trip(trip_id):
         conn.row_factory = sqlite3.Row
         trip = conn.execute(
             """
-            SELECT id, title, match_date, opponent, stadium, memo
+            SELECT id, title, season, match_date, opponent, stadium, memo
             FROM trips
             WHERE id = ? AND user_id = ?
             """,
@@ -524,6 +618,7 @@ def edit_trip(trip_id):
     opponent = trip["opponent"]
     stadium = trip["stadium"] or ""
     memo = trip["memo"] or ""
+    season = trip["season"] or ""
     
     if request.method == "POST":
         title = request.form["title"].strip()
@@ -531,6 +626,7 @@ def edit_trip(trip_id):
         opponent = request.form["opponent"].strip()
         stadium = request.form["stadium"].strip()
         memo = request.form["memo"].strip()
+        season = request.form["season"].strip()
 
         if title == "":
             error = "遠征名を入力してください。"
@@ -543,10 +639,10 @@ def edit_trip(trip_id):
                 conn.execute(
                     """
                     UPDATE trips
-                    SET title = ?, match_date = ?, opponent = ?, stadium = ?, memo = ?
+                    SET title = ?,season = ?, match_date = ?, opponent = ?, stadium = ?, memo = ?
                     WHERE id = ? AND user_id = ?
                     """,
-                    (title, match_date, opponent, stadium, memo, trip_id, session["user_id"]),
+                    (title, season, match_date, opponent, stadium, memo, trip_id, session["user_id"]),
                 )
             
             flash("遠征を更新しました。")
@@ -561,6 +657,8 @@ def edit_trip(trip_id):
         opponent=opponent,
         stadium=stadium,
         memo=memo,
+        season=season,
+        seasons=SEASONS
     )
 
 
