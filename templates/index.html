@@ -92,6 +92,47 @@
                 </tr>
             {% endfor %}
         </table>
+
+        <div class="chart-container">
+            <canvas id="categoryChart"></canvas>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        
+        <script>
+            const categoryLables = [
+                {% for category_total in category_totals %}
+                    {{ category_total.category | tojson}},
+                {% endfor %}
+                
+            ];
+            
+            const categoryAmounts = [
+                {% for category_total in category_totals %}
+                    {{ category_total.total }},
+                {% endfor %}
+            ];
+
+            const ctx = document.getElementById("categoryChart")
+
+            new Chart(ctx,{
+                type: "pie",
+                data: {
+                    labels: categoryLables,
+                    datasets:[
+                        {
+                            labale:"支出金額",
+                            data:categoryAmounts
+                        }
+                    ]
+                },
+                options:{
+                    responsive:true
+                }
+            });
+        </script>
+
+
     {% else %}
         <p>支出はまだ登録されていません。</p>
     {% endif %}
@@ -113,5 +154,6 @@
     {% else %}
         <p>日付付きの支出はまだ登録されていません。</p>
     {% endif %}
+
 
 {% endblock %}
