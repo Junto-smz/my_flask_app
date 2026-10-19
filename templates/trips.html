@@ -70,6 +70,52 @@
                 {% endfor %}
             </tbody>
         </table>
+
+        <div class="chart-section">
+            <h3>カテゴリ別支出割合</h3>
+
+            <div class="chart-container">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+    
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                
+        <script>
+            const tripLabels = [
+                {% for trip in trips %}
+                    {{ trip.title | tojson}},
+                {% endfor %}
+                
+            ];
+            
+            const tripAmounts = [
+                {% for trip in trips %}
+                    {{ trip.total_amount }},
+                {% endfor %}
+            ];
+
+            const ctx = document.getElementById("categoryChart")
+
+            new Chart(ctx,{
+                type: "pie",
+                data: {
+                    labels: tripLabels,
+                    datasets:[
+                        {
+                            label:"支出金額",
+                            data:tripAmounts
+                        }
+                    ]
+                },
+                options:{
+                    responsive:true,
+                    maintainAspectRatio: true
+                }
+            });
+        </script>
+
+
     {% else %}
         <p>遠征はまだ登録されていません。</p>
     {% endif %}

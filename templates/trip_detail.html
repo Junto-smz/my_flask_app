@@ -56,9 +56,56 @@
                 {% endfor %}
             </tbody>
         </table>
+
+    <div class="chart-section">
+        <h3>カテゴリ別支出割合</h3>
+
+        <div class="chart-container">
+            <canvas id="categoryChart"></canvas>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            
+    <script>
+        const categoryLabels = [
+            {% for category_total in category_totals %}
+                {{ category_total.category | tojson}},
+            {% endfor %}
+            
+        ];
+        
+        const categoryAmounts = [
+            {% for category_total in category_totals %}
+                {{ category_total.total }},
+            {% endfor %}
+        ];
+
+        const ctx = document.getElementById("categoryChart")
+
+        new Chart(ctx,{
+            type: "pie",
+            data: {
+                labels: categoryLabels,
+                datasets:[
+                    {
+                        label:"支出金額",
+                        data:categoryAmounts
+                    }
+                ]
+            },
+            options:{
+                responsive:true,
+                maintainAspectRatio: true
+            }
+        });
+    </script>
+
+
     {% else %}
         <p>カテゴリ別合計はまだありません。</p>
     {% endif %}
+
 
     <h3>この遠征の支出一覧</h3>
 
