@@ -23,5 +23,8 @@
     <button type="submit">ログイン</button>
 </form>
 
-<p>アカウントを持っていない場合は、ユーザー登録をしてください。</p>
+<p>アカウントを持っていない場合は、
+    <a href="{{ url_for('register') }}">ユーザー登録</a>
+    をしてください。
+</p>
 {% endblock %}
