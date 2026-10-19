@@ -308,6 +308,15 @@ td#total {
     margin-top: 0;
 }
 
+.summary-card .total-amount{
+    font-size: 1.2rem;
+    margin-bottom: 0;
+}
+
+.dashboard-card + .dashboard-card{
+    margin-top: 24px;
+}
+
 .table-wrapper {
     overflow: auto;
 }

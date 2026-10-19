@@ -28,6 +28,19 @@
         <button type="submit">選択</button>
     </form>
 
+    <section class="dashboard-card summary-card">
+        {% if selected_season %}
+            <h2>サマリー in {{ selected_season }}</h2>
+        {% else %}
+            <h2>これまでの全ての遠征</h2>
+        {% endif %}
+        <p class="total-amount">
+            {{ trip_count.trip_count }}遠征 / 
+            <b>合計金額：{{ total_amount | yen }}</b>
+        </p>
+    </section>
+
+    
 <section class="dashboard-card">
     {% if selected_season %}
         <h2>直近の遠征 in {{ selected_season}}</h2>
@@ -69,96 +82,93 @@
     {% endif %}
 </section>
 
-    {% if selected_season %}
-        <h2>サマリー in {{ selected_season }}</h2>
-    {% else %}
-        <h2>これまでの全ての遠征</h2>
-    {% endif %}
-    <p class="total-amount">{{ trip_count.trip_count }}遠征 / <b>合計金額：{{ total_amount | yen }}</b></p>
 
 
-
-    <h2>カテゴリ別合計</h2>
-    {% if category_totals %}
-        <table>
-            <tr>
-                <th>カテゴリ</th>
-                <th>合計金額</th>
-            </tr>
-            {% for category_total in category_totals %}
+    <section class="dashboard-card">
+        <h2>カテゴリ別支出</h2>
+        {% if category_totals %}
+            <table>
                 <tr>
-                    <td>{{ category_total.category }}</td>
-                    <td>{{ category_total.total | yen }}</td>
+                    <th>カテゴリ</th>
+                    <th>合計金額</th>
                 </tr>
-            {% endfor %}
-        </table>
+                {% for category_total in category_totals %}
+                    <tr>
+                        <td>{{ category_total.category }}</td>
+                        <td>{{ category_total.total | yen }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
 
-        <div class="chart-section">
-            <h3>カテゴリ別支出割合</h3>
+            <div class="chart-section">
+                <h3>カテゴリ別支出割合</h3>
 
-            <div class="chart-container">
-                <canvas id="categoryChart"></canvas>
+                <div class="chart-container">
+                    <canvas id="categoryChart"></canvas>
+                </div>
             </div>
-        </div>
 
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        
-        <script>
-            const categoryLables = [
-                {% for category_total in category_totals %}
-                    {{ category_total.category | tojson}},
-                {% endfor %}
-                
-            ];
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
             
-            const categoryAmounts = [
-                {% for category_total in category_totals %}
-                    {{ category_total.total }},
-                {% endfor %}
-            ];
+            <script>
+                const categoryLables = [
+                    {% for category_total in category_totals %}
+                        {{ category_total.category | tojson}},
+                    {% endfor %}
+                    
+                ];
+                
+                const categoryAmounts = [
+                    {% for category_total in category_totals %}
+                        {{ category_total.total }},
+                    {% endfor %}
+                ];
 
-            const ctx = document.getElementById("categoryChart")
+                const ctx = document.getElementById("categoryChart")
 
-            new Chart(ctx,{
-                type: "pie",
-                data: {
-                    labels: categoryLables,
-                    datasets:[
-                        {
-                            labale:"支出金額",
-                            data:categoryAmounts
-                        }
-                    ]
-                },
-                options:{
-                    responsive:true,
-                    maintainAspectRatio: true
-                }
-            });
-        </script>
+                new Chart(ctx,{
+                    type: "pie",
+                    data: {
+                        labels: categoryLables,
+                        datasets:[
+                            {
+                                labale:"支出金額",
+                                data:categoryAmounts
+                            }
+                        ]
+                    },
+                    options:{
+                        responsive:true,
+                        maintainAspectRatio: true
+                    }
+                });
+            </script>
+
+        {% else %}
+            <p>支出はまだ登録されていません。</p>
+        {% endif %}
+    </section>
 
 
-    {% else %}
-        <p>支出はまだ登録されていません。</p>
-    {% endif %}
-
-    <h2>月別金額</h2>
-    {% if monthly_totals %}
-        <table>
-            <tr>
-                <th>年月</th>
-                <th>合計金額</th>
-            </tr>
-            {% for monthly_total in monthly_totals %}
+    <section class="dashboard-card">
+        <h2>月別支出金額</h2>
+        {% if monthly_totals %}
+            <table>
                 <tr>
-                    <td>{{ monthly_total.month }}</td>
-                    <td>{{ monthly_total.total | yen }}</td>
+                    <th>年月</th>
+                    <th>合計金額</th>
                 </tr>
-            {% endfor %}
-        </table>
-    {% else %}
-        <p>日付付きの支出はまだ登録されていません。</p>
-    {% endif %}
+                {% for monthly_total in monthly_totals %}
+                    <tr>
+                        <td>{{ monthly_total.month }}</td>
+                        <td>{{ monthly_total.total | yen }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <p>日付付きの支出はまだ登録されていません。</p>
+        {% endif %}
+    </section>
 
 
 {% endblock %}
