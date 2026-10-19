@@ -93,8 +93,12 @@
             {% endfor %}
         </table>
 
-        <div class="chart-container">
-            <canvas id="categoryChart"></canvas>
+        <div class="chart-section">
+            <h3>カテゴリ別支出割合</h3>
+
+            <div class="chart-container">
+                <canvas id="categoryChart"></canvas>
+            </div>
         </div>
 
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -127,7 +131,8 @@
                     ]
                 },
                 options:{
-                    responsive:true
+                    responsive:true,
+                    maintainAspectRatio: true
                 }
             });
         </script>
