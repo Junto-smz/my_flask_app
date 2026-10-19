@@ -277,6 +277,10 @@ small {
         display: inline-block;
         margin-bottom: 6px;
     }
+
+    .chart-container {
+        max-width: 320px;
+    }
 }
 
 table {
@@ -304,6 +308,15 @@ td#total {
     margin-top: 0;
 }
 
+.summary-card .total-amount{
+    font-size: 1.2rem;
+    margin-bottom: 0;
+}
+
+.dashboard-card + .dashboard-card{
+    margin-top: 24px;
+}
+
 .table-wrapper {
     overflow: auto;
 }
@@ -314,4 +327,19 @@ td#total {
 
 .latest-trips-table td a {
     font-weight: bold;
+}
+
+.chart-section{
+    margin-top: 24px;
+}
+
+.chart-section h3{
+    margin-bottom: 16px;
+}
+
+.chart-container{
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
 }
