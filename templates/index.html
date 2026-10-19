@@ -111,7 +111,7 @@
             <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
             
             <script>
-                const categoryLables = [
+                const categoryLabels = [
                     {% for category_total in category_totals %}
                         {{ category_total.category | tojson}},
                     {% endfor %}
@@ -129,10 +129,10 @@
                 new Chart(ctx,{
                     type: "pie",
                     data: {
-                        labels: categoryLables,
+                        labels: categoryLabels,
                         datasets:[
                             {
-                                labale:"支出金額",
+                                label:"支出金額",
                                 data:categoryAmounts
                             }
                         ]

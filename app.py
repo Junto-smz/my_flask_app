@@ -217,26 +217,26 @@ def index():
             latest_trip_params
         ).fetchall()
             
-    trip_count_query = """
-        SELECT COUNT(*) AS trip_count
-        FROM trips
-        WHERE user_id = ?
-    """
-    
-    trip_count_params =[session["user_id"]]
-    
-    if selected_season:
-        trip_count_query += " AND trips.season = ?"
-        trip_count_params.append(selected_season)
-    
-    trip_count = conn.execute(
-        trip_count_query,
-        trip_count_params
-    ).fetchone()
-    
-    total_amount = 0
-    for expense in expenses:
-        total_amount += expense["amount"]
+        trip_count_query = """
+            SELECT COUNT(*) AS trip_count
+            FROM trips
+            WHERE user_id = ?
+        """
+        
+        trip_count_params =[session["user_id"]]
+        
+        if selected_season:
+            trip_count_query += " AND trips.season = ?"
+            trip_count_params.append(selected_season)
+        
+        trip_count = conn.execute(
+            trip_count_query,
+            trip_count_params
+        ).fetchone()
+        
+        total_amount = 0
+        for expense in expenses:
+            total_amount += expense["amount"]
 
     return render_template(
         "index.html",
