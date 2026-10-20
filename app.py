@@ -10,7 +10,10 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 
 app = Flask(__name__)
-app.secret_key = "dev-secret-key"
+app.secret_key = os.environ.get(
+    "SECRET_KEY",
+    "dev-secret-key"
+    )
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
