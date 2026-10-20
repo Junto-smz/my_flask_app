@@ -8,6 +8,17 @@
 <h2>支出一覧</h2>
 
     <form method="get" action="{{url_for('expenses') }}">
+        <label for="season">シーズンで絞り込み</label>
+            <select id="season" name="season">
+                <option value="">すべて</option>
+                {% for season in seasons %}
+                    <option value="{{ season }}" {% if selected_season == season %}selected{% endif %}>
+                        {{season}}
+                    </option>
+                {% endfor %}
+            </select>
+
+    <form method="get" action="{{url_for('expenses') }}">
         <label for="title">遠征で絞り込み</label>
             <select id="title" name="title">
                 <option value="">すべて</option>
@@ -47,6 +58,10 @@
 
 {% if selected_category or selected_month or keyword %}
     <p>現在の絞り込み:
+    {% if selected_season %}
+        シーズン:{{selected_season}}
+    {% endif %}
+
     {% if selected_trip_title %}
         遠征名_{{ selected_trip_title }}
     {% endif %}
@@ -65,7 +80,7 @@
     </p>
 {% endif %}
 
-{% if selected_trip_title or selected_category or selected_month or keyword %}
+{% if selected_season or selected_trip_title or selected_category or selected_month or keyword %}
     <p>
         <a href="{{url_for('expenses') }}">絞り込みを解除</a>
     </p>
@@ -73,7 +88,7 @@
     {% if expenses %}
         <table>
             <tr>
-                <th>ID</th>
+                <th>シーズン</th>
                 <th>支出日</th>
                 <th>遠征名</th>
                 <th>カテゴリ</th>
@@ -83,7 +98,7 @@
             </tr>
             {% for expense in expenses %}
                 <tr>
-                    <td>{{ expense.id }}</td>
+                    <td>{{ expense.season or "未設定" }}</td>
                     <td>{{ expense.spent_on or "未設定" }}</td>
                     <td>
                         {% if expense.trip_title %}
