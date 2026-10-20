@@ -178,7 +178,7 @@ def index():
             SELECT 
                 trips.id,
                 trips.title,
-                trips. season,
+                trips.season,
                 trips.match_date,
                 trips.opponent,
                 trips.stadium,
