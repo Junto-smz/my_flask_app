@@ -11,11 +11,6 @@
 
     <form method="POST">
         <div>
-            <label for="title">遠征名</label>
-            <input type="text" id="title" name="title" value="{{ title }}">
-        </div>
-
-        <div>
             <label for="season">シーズン</label>
             <select id="season" name="season">
                 <option value="">選択してください</option>
@@ -29,7 +24,13 @@
                     </option>
                 {% endfor %}
             </select>
+        </div
+        >
+        <div>
+            <label for="title">遠征名</label>
+            <input type="text" id="title" name="title" value="{{ title }}">
         </div>
+
 
         <div>
             <label for="match_date">試合日</label>

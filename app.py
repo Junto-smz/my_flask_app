@@ -233,17 +233,21 @@ def index():
             trip_count_query,
             trip_count_params
         ).fetchone()
-        
+                
         total_amount = 0
         for expense in expenses:
             total_amount += expense["amount"]
+        if int(trip_count["trip_count"]) != 0:
+            average_amount = total_amount // int(trip_count["trip_count"])
+        else:
+            average_amount = 0
+        
 
     return render_template(
         "index.html",
         app_name=app_name,
         description=description,
         expenses=expenses,
-        total_amount=total_amount,
         category_totals=category_totals,
         monthly_totals=monthly_totals,
         categories = CATEGORIES,
@@ -254,6 +258,8 @@ def index():
         selected_season = selected_season,
         latest_trips = latest_trips,
         trip_count = trip_count,
+        total_amount=total_amount,
+        average_amount = average_amount
     )
 
 
@@ -265,7 +271,8 @@ def expenses():
     app_name = "Jリーグアウェイ遠征家計簿"
     description = "遠征にかかった費用を記録・管理するアプリです。"
     selected_category = request.args.get("category", "")
-    selected_month = request.args.get("month", "")    
+    selected_month = request.args.get("month", "")
+    selected_trip_title = request.args.get("title", "")
     keyword = request.args.get("keyword","").strip()
     
     with sqlite3.connect(DATABASE) as conn:
@@ -284,6 +291,9 @@ def expenses():
                 
         params = [session["user_id"]]
 
+        if selected_trip_title:
+            query += "AND trips.title = ?"
+            params.append(selected_trip_title)
         if selected_category:
                 query += " AND expenses.category = ?"
                 params.append(selected_category)
@@ -333,6 +343,16 @@ def expenses():
             """,
             (session["user_id"],),
         ).fetchall()
+        
+        trip_titles = conn.execute(
+            """
+            SELECT trips.title
+            FROM trips
+            WHERE user_id = ?
+            ORDER BY match_date DESC
+            """,
+            (session["user_id"],),
+        ).fetchall()
 
     total_amount = 0
     for expense in expenses:
@@ -350,11 +370,14 @@ def expenses():
         selected_category = selected_category,
         months = months,
         selected_month = selected_month,
+        selected_trip_title = selected_trip_title,
+        trip_titles = trip_titles,
         keyword = keyword
     )
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
+    
     error = None
     username = ""
     
