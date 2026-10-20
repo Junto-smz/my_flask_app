@@ -36,7 +36,8 @@
         {% endif %}
         <p class="total-amount">
             {{ trip_count.trip_count }}遠征 / 
-            <b>合計金額：{{ total_amount | yen }}</b>
+            <b>合計金額：{{ total_amount | yen }}<br>
+            　　　平均金額：{{ average_amount | yen }}</b>
         </p>
     </section>
 

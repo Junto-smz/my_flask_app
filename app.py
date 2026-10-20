@@ -233,17 +233,21 @@ def index():
             trip_count_query,
             trip_count_params
         ).fetchone()
-        
+                
         total_amount = 0
         for expense in expenses:
             total_amount += expense["amount"]
+        if int(trip_count["trip_count"]) != 0:
+            average_amount = total_amount // int(trip_count["trip_count"])
+        else:
+            average_amount = 0
+        
 
     return render_template(
         "index.html",
         app_name=app_name,
         description=description,
         expenses=expenses,
-        total_amount=total_amount,
         category_totals=category_totals,
         monthly_totals=monthly_totals,
         categories = CATEGORIES,
@@ -254,6 +258,8 @@ def index():
         selected_season = selected_season,
         latest_trips = latest_trips,
         trip_count = trip_count,
+        total_amount=total_amount,
+        average_amount = average_amount
     )
 
 
