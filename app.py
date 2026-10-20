@@ -270,9 +270,10 @@ def expenses():
         return login_check
     app_name = "Jリーグアウェイ遠征家計簿"
     description = "遠征にかかった費用を記録・管理するアプリです。"
+    selected_season = request.args.get("season","")
+    selected_trip_title = request.args.get("title", "")
     selected_category = request.args.get("category", "")
     selected_month = request.args.get("month", "")
-    selected_trip_title = request.args.get("title", "")
     keyword = request.args.get("keyword","").strip()
     
     with sqlite3.connect(DATABASE) as conn:
@@ -283,6 +284,7 @@ def expenses():
                             expenses.amount,
                             expenses.spent_on,
                             expenses.memo,
+                            trips.season,
                             trips.title AS trip_title
                     FROM expenses
                     LEFT JOIN trips ON expenses.trip_id = trips.id
@@ -290,6 +292,10 @@ def expenses():
                 """
                 
         params = [session["user_id"]]
+        
+        if selected_season:
+            query += "AND trips.season = ?"
+            params.append(selected_season)
 
         if selected_trip_title:
             query += "AND trips.title = ?"
@@ -367,8 +373,10 @@ def expenses():
         category_totals=category_totals,
         monthly_totals=monthly_totals,
         categories = CATEGORIES,
-        selected_category = selected_category,
+        seasons = SEASONS,
         months = months,
+        selected_season = selected_season,
+        selected_category = selected_category,
         selected_month = selected_month,
         selected_trip_title = selected_trip_title,
         trip_titles = trip_titles,
