@@ -614,6 +614,8 @@ def new_trip():
             error = "試合日を入力してください。"
         elif opponent == "":
             error = "対戦相手を入力してください。"
+        elif season not in SEASONS:
+            error = "正しいシーズンを選択してください。"
         else:
             with sqlite3.connect(DATABASE) as conn:
                 conn.execute(
@@ -683,6 +685,8 @@ def edit_trip(trip_id):
             error = "試合日を入力してください。"
         elif opponent == "":
             error = "対戦相手を入力してください。"
+        elif season not in SEASONS:
+            error = "正しいシーズンを入力してください。"
         else:
             with sqlite3.connect(DATABASE) as conn:
                 conn.execute(
