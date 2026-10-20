@@ -1,6 +1,10 @@
 import sqlite3
+import os 
 
-with sqlite3.connect("./database/database.db") as conn:
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+DATABASE = os.path.join(BASE_DIR, "database", "database.db")
+with sqlite3.connect(DATABASE) as conn:
 
     conn.execute(
     """
