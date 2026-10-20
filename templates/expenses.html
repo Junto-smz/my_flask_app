@@ -8,6 +8,16 @@
 <h2>支出一覧</h2>
 
     <form method="get" action="{{url_for('expenses') }}">
+        <label for="title">遠征で絞り込み</label>
+            <select id="title" name="title">
+                <option value="">すべて</option>
+                {% for trip_title in trip_titles %}
+                    <option value="{{trip_title['title'] }}" {% if selected_trip_title == trip_title['title'] %}selected{% endif %}>
+                        {{trip_title['title']}}
+                    </option>
+                {% endfor %}
+            </select>
+
         <label for="category">カテゴリで絞り込み</label>
         <select id="category" name="category">
             <option value="">すべて</option>
@@ -37,21 +47,25 @@
 
 {% if selected_category or selected_month or keyword %}
     <p>現在の絞り込み:
+    {% if selected_trip_title %}
+        遠征名_{{ selected_trip_title }}
+    {% endif %}
+
     {% if selected_category %}
-        カテゴリ_｛{{ selected_category }}｝
+        カテゴリ_{{ selected_category }}
     {% endif %}
 
     {% if selected_month %}
-        / 月_｛{{ selected_month }}｝
+        / 月_{{ selected_month }}
     {% endif %}
 
     {% if keyword %}
-        /メモ｛{{ keyword }}｝
+        /メモ{{ keyword }}
     {% endif %}
     </p>
 {% endif %}
 
-{% if selected_category or selected_month or keyword %}
+{% if selected_trip_title or selected_category or selected_month or keyword %}
     <p>
         <a href="{{url_for('expenses') }}">絞り込みを解除</a>
     </p>
