@@ -54,10 +54,10 @@
             <thead>
                 <tr>
                     <th>シーズン</th>
+                    <th>試合日</th>
                     <th>タイトル</th>
                     <th>合計金額</th>
                     <th>支出件数</th>
-                    <th>試合日</th>
                     <th>対戦相手</th>
                 </tr>
             </thead>
@@ -66,11 +66,11 @@
                 {% for lt in latest_trips %}
                     <tr>
                         <td>{{ lt.season or "" }}</td>
+                        <td>{{ lt.match_date }}</td>
                         <td><a href="{{ url_for('trip_detail', trip_id = lt.id) }}">
                             {{ lt.title }}</a></td>
                         <td>{{ lt.total_amount | yen }}</td>
                         <td>{{ lt.expense_count }}件</td>
-                        <td>{{ lt.match_date }}</td>
                         <td>{{ lt.opponent}}</td>
                     </tr>
                 {% endfor %}
