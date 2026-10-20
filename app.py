@@ -237,6 +237,8 @@ def index():
         total_amount = 0
         for expense in expenses:
             total_amount += expense["amount"]
+            
+            
         if int(trip_count["trip_count"]) != 0:
             average_amount = total_amount // int(trip_count["trip_count"])
         else:

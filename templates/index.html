@@ -13,11 +13,11 @@
         <label for="season">シーズンを選択する</label>
 
         <select id="season" name="season">
-            <option value="">選択なし</option>
+            <option value="">すべて</option>
 
             {% for season_option in seasons %}
                 <option 
-                    value="{{ season_option}}"
+                    value="{{ season_option }}"
                     {% if selected_season == season_option %}selected{% endif%}
                     >
                     {{ season_option }}
