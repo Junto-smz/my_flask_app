@@ -4,6 +4,8 @@ import sqlite3
 
 from flask import Flask, abort, redirect, render_template, request, session, url_for, flash
 
+from flask_wtf import CSRFProtect
+
 from datetime import date
 
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -14,6 +16,8 @@ app.secret_key = os.environ.get(
     "SECRET_KEY",
     "dev-secret-key"
     )
+
+csrf = CSRFProtect(app)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -470,7 +474,7 @@ def login():
     )
 
 
-@app.route("/logout")
+@app.route("/logout", methods=["POST"])
 def logout():
     session.clear()
     flash("ログアウトしました。")
