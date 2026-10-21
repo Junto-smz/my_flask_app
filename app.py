@@ -10,6 +10,8 @@ from datetime import date
 
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from datetime import date
+
 
 app = Flask(__name__)
 app.secret_key = os.environ.get(
@@ -180,7 +182,52 @@ def index():
             monthly_params
         ).fetchall()
         
-
+        today = date.today()
+        future_trip_query = """
+                    SELECT 
+                        trips.id,
+                        trips.title,
+                        trips.season,
+                        trips.match_date,
+                        trips.opponent,
+                        trips.stadium,
+                        COALESCE(SUM(expenses.amount), 0) AS total_amount,
+                        COUNT(expenses.id) AS expense_count
+                        FROM trips
+                        LEFT JOIN expenses
+                            ON trips.id = expenses.trip_id
+                            AND expenses.user_id = ?
+                        WHERE trips.user_id = ?
+                        AND trips.match_date >= ?
+                """
+                
+        future_trip_params = [
+            session["user_id"],
+            session["user_id"],
+            today,
+        ]
+        
+        if selected_season:
+            future_trip_query += " AND trips.season = ?"
+            future_trip_params.append(selected_season)
+        
+        future_trip_query += """
+            GROUP BY 
+                trips.id,
+                trips.title,
+                trips.season,
+                trips.match_date,
+                trips.opponent,
+                trips.stadium
+            ORDER BY trips.match_date DESC, trips.id DESC
+            LIMIT 3
+        """
+        
+        future_trips = conn.execute(
+            future_trip_query,
+            future_trip_params
+        ).fetchall()
+        
         latest_trip_query = """
             SELECT 
                 trips.id,
@@ -196,11 +243,13 @@ def index():
                     ON trips.id = expenses.trip_id
                     AND expenses.user_id = ?
                 WHERE trips.user_id = ?
+                AND trips.match_date <= ?
         """
         
         latest_trip_params = [
             session["user_id"],
             session["user_id"],
+            today,
         ]
         
         if selected_season:
@@ -223,6 +272,7 @@ def index():
             latest_trip_query,
             latest_trip_params
         ).fetchall()
+        
             
         trip_count_query = """
             SELECT COUNT(*) AS trip_count
@@ -265,6 +315,7 @@ def index():
         keyword = keyword,
         seasons = SEASONS,
         selected_season = selected_season,
+        future_trips = future_trips,
         latest_trips = latest_trips,
         trip_count = trip_count,
         total_amount=total_amount,
