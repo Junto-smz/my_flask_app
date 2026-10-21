@@ -18,7 +18,10 @@
 
                 {% if session.get("user_id") %}
                     <span>ログイン中: {{ session.get("username") }}</span>
-                    <a href="{{ url_for('logout') }}">ログアウト</a>
+                    <form method="post" action="{{ url_for('logout') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit">ログアウト</button>
+                    </form>
                 {% else %}
                     <a href="{{url_for('login')}}">ログイン</a>
                     <a href="{{ url_for('register') }}">ユーザー登録</a>
