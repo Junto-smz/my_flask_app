@@ -7,88 +7,91 @@
 {% block content %}
 <h2>支出検索</h2>
 
-    <form method="get" action="{{url_for('expenses') }}">
-        <label for="season">シーズンで絞り込み</label>
-            <select id="season" name="season">
+    {% if expenses %}
+        <form method="get" action="{{url_for('expenses') }}">
+            <label for="season">シーズンで絞り込み</label>
+                <select id="season" name="season">
+                    <option value="">すべて</option>
+                    {% for season in seasons %}
+                        <option value="{{ season }}" {% if selected_season == season %}selected{% endif %}>
+                            {{season}}
+                        </option>
+                    {% endfor %}
+                </select>
+
+        <form method="get" action="{{url_for('expenses') }}">
+            <label for="title">遠征で絞り込み</label>
+                <select id="title" name="title">
+                    <option value="">すべて</option>
+                    {% for trip_title in trip_titles %}
+                        <option value="{{trip_title['title'] }}" {% if selected_trip_title == trip_title['title'] %}selected{% endif %}>
+                            {{trip_title['title']}}
+                        </option>
+                    {% endfor %}
+                </select>
+
+            <label for="category">カテゴリで絞り込み</label>
+            <select id="category" name="category">
                 <option value="">すべて</option>
-                {% for season in seasons %}
-                    <option value="{{ season }}" {% if selected_season == season %}selected{% endif %}>
-                        {{season}}
+                {% for category in categories %}
+                    <option value="{{category}}" {% if selected_category == category %}selected{% endif %}>
+                        {{category}}
                     </option>
                 {% endfor %}
             </select>
 
-    <form method="get" action="{{url_for('expenses') }}">
-        <label for="title">遠征で絞り込み</label>
-            <select id="title" name="title">
+            <label for="month">月で絞り込み</label>
+            <select id="month" name="month">
                 <option value="">すべて</option>
-                {% for trip_title in trip_titles %}
-                    <option value="{{trip_title['title'] }}" {% if selected_trip_title == trip_title['title'] %}selected{% endif %}>
-                        {{trip_title['title']}}
+                {% for month in months %}
+                    <option value="{{ month.month }}" {% if selected_month == month.month %}selected{% endif %}>
+                        {{month.month}}
                     </option>
                 {% endfor %}
-            </select>
+            </select> 
 
-        <label for="category">カテゴリで絞り込み</label>
-        <select id="category" name="category">
-            <option value="">すべて</option>
-            {% for category in categories %}
-                <option value="{{category}}" {% if selected_category == category %}selected{% endif %}>
-                    {{category}}
-                </option>
-            {% endfor %}
-        </select>
-
-        <label for="month">月で絞り込み</label>
-        <select id="month" name="month">
-            <option value="">すべて</option>
-            {% for month in months %}
-                <option value="{{ month.month }}" {% if selected_month == month.month %}selected{% endif %}>
-                    {{month.month}}
-                </option>
-            {% endfor %}
-        </select> 
-
-        <label>メモ検索:</label>
-        <input type="text" name="keyword" value="{{ keyword }}" placeholder="例:新幹線、ホテル">
+            <label>メモ検索:</label>
+            <input type="text" name="keyword" value="{{ keyword }}" placeholder="例:新幹線、ホテル">
 
 
-        <button type="submit">絞り込み</button>
-    </form>
-
-{% if selected_season or selected_trip_title or selected_category or selected_month or keyword %}
-    <p>現在の絞り込み：
-    {% if selected_season %}
-        ［{{selected_season}}］
+            <button type="submit">絞り込み</button>
+        </form>
     {% endif %}
 
-    {% if selected_trip_title %}
-        ［{{ selected_trip_title }}］
+
+    {% if selected_season or selected_trip_title or selected_category or selected_month or keyword %}
+        <p>現在の絞り込み：
+        {% if selected_season %}
+            ［{{selected_season}}］
+        {% endif %}
+
+        {% if selected_trip_title %}
+            ［{{ selected_trip_title }}］
+        {% endif %}
+
+        {% if selected_category %}
+            ［{{ selected_category }}］
+        {% endif %}
+
+        {% if selected_month %}
+            ［{{ selected_month }}］
+        {% endif %}
+
+        {% if keyword %}
+            ［{{ keyword }}］
+        {% endif %}
+        </p>
     {% endif %}
 
-    {% if selected_category %}
-        ［{{ selected_category }}］
+    {% if (expenses != []) and (selected_season or selected_trip_title or selected_category or selected_month or keyword) %}
+        <p>
+            <a href="{{url_for('expenses') }}">絞り込みを解除</a>
+        </p>
     {% endif %}
 
-    {% if selected_month %}
-        ［{{ selected_month }}］
-    {% endif %}
-
-    {% if keyword %}
-        ［{{ keyword }}］
-    {% endif %}
-    </p>
-{% endif %}
-
-{% if selected_season or selected_trip_title or selected_category or selected_month or keyword %}
-    <p>
-        <a href="{{url_for('expenses') }}">絞り込みを解除</a>
-    </p>
-{% endif %}
     {% if expenses %}
         <table>
             <tr>
-                <th>シーズン</th>
                 <th>支出日</th>
                 <th>遠征名</th>
                 <th>カテゴリ</th>
@@ -98,7 +101,6 @@
             </tr>
             {% for expense in expenses %}
                 <tr>
-                    <td>{{ expense.season or "未設定" }}</td>
                     <td>{{ expense.spent_on or "未設定" }}</td>
                     <td>
                         {% if expense.trip_title %}
@@ -119,6 +121,9 @@
         </table>
     {% else %}
         <p>該当する支出はありません。</p>
+        <p>
+            <a href="{{url_for('expenses') }}">絞り込みを解除</a>
+        </p>
     {% endif %}
 
 {% endblock content %}

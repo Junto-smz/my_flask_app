@@ -758,7 +758,7 @@ def confirm_delete_trip(trip_id):
                             expense_count = expense_count,)
 
 
-@app.route("/trips/<int:trip_id>/delete", methods={"POST"})
+@app.route("/trips/<int:trip_id>/delete", methods=["POST"])
 def delete_trip(trip_id):
     login_check = login_required()
     if login_check:
