@@ -6,8 +6,7 @@
     <h2>遠征一覧</h2>
 
     <form method="get" action="{{url_for('trips') }}">
-        <label for="season">シーズン</label>
-
+        <h3><label for="season">シーズンを選択する</label></h3>
         <select id="season" name="season">
             <option value="">すべて</option>
 
@@ -35,8 +34,6 @@
                     <th>シーズン</th>
                     <th>試合日</th>
                     <th>遠征名</th>
-                    <th>対戦相手</th>
-                    <th>スタジアム</th>
                     <th>支出合計</th>
                     <th>メモ</th>
                     <th>操作</th>
@@ -52,14 +49,14 @@
                                 {{ trip.title }}
                             </a>
                         </td>
-                        <td>{{ trip.opponent }}</td>
-                        <td>{{ trip.stadium or "" }}</td>
                         <td id="total">{{ trip.total_amount|yen }} <br> 
                             {{ trip.expense_count }}件
                         </td>
                         <td>{{ trip.memo or "" }}</td>
                         <td>
                             <a href="{{ url_for('trip_detail', trip_id = trip.id )}}">詳細を見る</a>
+                            /
+                            <a href="{{ url_for('new_expense', trip_id = trip.id) }}">支出追加</a>
                             /
                             <a href="{{ url_for('edit_trip', trip_id=trip.id) }}">編集する</a>
                             /
@@ -70,90 +67,6 @@
                 {% endfor %}
             </tbody>
         </table>
-
-        <div class="chart-section">
-            <h3>遠征別支出割合</h3>
-
-            <div class="chart-container">
-                <canvas id="tripChart"></canvas>
-            </div>
-        </div>
-    
-
-            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-            <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
-            <script>
-                Chart.register(ChartDataLabels);
-    
-                const tripLabels = [
-                    {% for trip in trips %}
-                        {{ trip.title | tojson}},
-                    {% endfor %}
-                    
-                ];
-                
-                const tripAmounts = [
-                    {% for trip in trips %}
-                        {{ trip.total_amount }},
-                    {% endfor %}
-                ];
-
-                const ctx = document.getElementById("tripChart")
-
-                new Chart(ctx,{
-                    type: "pie",
-                    data: {
-                        labels: tripLabels,
-                        datasets:[
-                            {
-                                label:"支出金額",
-                                data:tripAmounts
-                            }
-                        ]
-                    },
-                    options:{
-                        responsive:true,
-                        maintainAspectRatio: true,
-                        plugins: {
-                            datalabels:{
-                                formatter: function(value, context){
-                                    const data = context.chart.data.datasets[0].data;
-
-                                    const total = data.reduce(
-                                        (sum, amount) => sum + amount,
-                                        0
-                                    );
-
-                                    const percentage = total === 0
-                                        ? 0
-                                        : (value / total * 100).toFixed(1);
-
-                                    const label = context.chart.data.labels[context.dataIndex];
-
-                                    if (percentage < 10){
-                                        return label
-                                                + "\n"
-                                                + percentage 
-                                                + "%";
-                                    }
-
-
-                                    return label
-                                        + "\n" 
-                                        + value.toLocaleString() 
-                                        + "円\n" 
-                                        + percentage 
-                                        + "%";
-                                },
-                                font:{
-                                    weight: "bold"
-                                },
-                                textAlign: "center"
-                            }
-                        }
-                    }
-                });
-            </script>
     {% else %}
         <p>遠征はまだ登録されていません。</p>
     {% endif %}

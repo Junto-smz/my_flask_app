@@ -85,27 +85,108 @@ def validate_expense_form(category, amount_text, spent_on):
     return None, amount
 
 
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    
+    error = None
+    username = ""
+    
+    if request.method == "POST":
+        username = request.form["username"].strip()
+        password = request.form["password"]
+        
+        if username == "":
+            error =  "ユーザー名を入力してください。"
+        elif password == "":
+            error = "パスワードを入力してください。"
+        else:
+            password_hash = generate_password_hash(password)
+            
+            try:
+                with sqlite3.connect(DATABASE) as conn:
+                    conn.execute(
+                        """
+                        INSERT INTO users (username, password_hash)
+                        VALUES (?, ?)
+                        """,
+                        (username, password_hash),
+                    )
+            except sqlite3.IntegrityError:
+                error = "そのユーザー名はすでに使われています。"
+            
+            else:
+                flash("ユーザー登録が完了しました。ログインしてください。")
+                return redirect(url_for("login"))
+
+    return render_template(
+        "register.html",
+        error = error,
+        username =  username
+    )
+    
+    
+@app.route("/login", methods = ["GET", "POST"])
+def login():
+    error = None
+    username = ""
+    
+    if request.method == "POST":
+            username = request.form["username"].strip()
+            password = request.form["password"]
+
+            if username == "":
+                error = "ユーザー名を入力してください。"
+            elif password == "":
+                error = "パスワードを入力してください。"
+            else:
+                with sqlite3.connect(DATABASE) as conn:
+                    conn.row_factory = sqlite3.Row
+                    user = conn.execute(
+                        """
+                        SELECT id, username, password_hash
+                        FROM users
+                        WHERE username = ?
+                        """,
+                        (username,),
+                    ).fetchone()
+                
+                if user is None:
+                    error = "ユーザー名またはパスワードが正しくありません。"
+                elif not check_password_hash(user["password_hash"], password):
+                    error = "ユーザー名またはパスワードが正しくありません。"
+                else:
+                    session["user_id"] = user["id"]
+                    session["username"] = user["username"]
+                    flash("ログインしました。")
+                    return redirect(url_for("index"))
+            
+    return render_template(
+        "login.html",
+        error = error,
+        username = username
+    )
+
+
+@app.route("/logout", methods=["POST"])
+def logout():
+    session.clear()
+    flash("ログアウトしました。")
+    return redirect(url_for("login"))
+
+
 @app.route("/")
 def index():
     login_check = login_required()
     if login_check:
         return login_check
-    app_name = "Jリーグアウェイ遠征家計簿"
-    description = "遠征にかかった費用を記録・管理するアプリです。"
-    selected_category = request.args.get("category", "")
-    selected_month = request.args.get("month", "")    
-    keyword = request.args.get("keyword","").strip()
     selected_season = request.args.get("season", "").strip()
+    
     
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
         query = """
-                    SELECT  expenses.id, 
-                            expenses.category,
-                            expenses.amount,
-                            expenses.spent_on,
-                            expenses.memo,
-                            trips.title AS trip_title
+                    SELECT expenses.amount
                     FROM expenses
                     LEFT JOIN trips ON expenses.trip_id = trips.id
                     WHERE expenses.user_id = ?
@@ -113,18 +194,6 @@ def index():
                 
         params = [session["user_id"]]
 
-        if selected_category:
-                query += " AND expenses.category = ?"
-                params.append(selected_category)
-            
-        if selected_month:
-                query += " AND substr(expenses.spent_on, 1, 7) = ?"
-                params.append(selected_month)
-        
-        if keyword:
-            query += " AND expenses.memo LIKE ?"
-            params.append(f"%{keyword}%")
-        
         if selected_season:
             query += " AND trips.season = ?"
             params.append(selected_season)
@@ -133,55 +202,35 @@ def index():
         
         expenses = conn.execute(query,params).fetchall()
         
-        category_query = """
-            SELECT expenses.category, SUM(expenses.amount) AS total
-            FROM expenses
-            LEFT JOIN trips ON expenses.trip_id = trips.id
-            WHERE expenses.user_id = ?
-        """
+        trip_count_params =[session["user_id"]]
         
-        category_params = [session["user_id"]]
+        trip_count_query = """
+            SELECT COUNT(*) AS trip_count
+            FROM trips
+            WHERE user_id = ?
+        """
         
         if selected_season:
-            category_query += " AND trips.season = ?"
-            category_params.append(selected_season)
+            trip_count_query += " AND trips.season = ?"
+            trip_count_params.append(selected_season)
+        
+        
+        trip_count = conn.execute(
+            trip_count_query,
+            trip_count_params
+        ).fetchone()
+        
+        total_amount = 0
+        for expense in expenses:
+            total_amount += expense["amount"]
             
-        category_query += """
-            GROUP BY expenses.category
-            ORDER BY total DESC
-        """
         
-
-        category_totals = conn.execute(
-            category_query,
-            category_params
-        ).fetchall()
-        
-        monthly_query ="""
-            SELECT substr(spent_on, 1, 7) AS month, SUM(amount) AS total
-            FROM expenses
-            LEFT JOIN trips ON expenses.trip_id = trips.id
-            WHERE spent_on IS NOT NULL 
-            AND spent_on != '' 
-            AND expenses.user_id = ?
-        """
-        
-        monthly_params = [session["user_id"]]
-        
-        if selected_season:
-            monthly_query += " AND trips.season = ?"
-            monthly_params.append(selected_season)
+        if int(trip_count["trip_count"]) != 0:
+            average_amount = total_amount // int(trip_count["trip_count"])
+        else:
+            average_amount = 0
             
-        monthly_query += """
-            GROUP BY month
-            ORDER BY month DESC
-        """
-        
-        monthly_totals = conn.execute(
-            monthly_query,
-            monthly_params
-        ).fetchall()
-        
+                
         today = date.today()
         future_trip_query = """
                     SELECT 
@@ -220,8 +269,7 @@ def index():
                 trips.opponent,
                 trips.stadium
             ORDER BY trips.match_date DESC, trips.id DESC
-            LIMIT 3
-        """
+            """
         
         future_trips = conn.execute(
             future_trip_query,
@@ -273,53 +321,67 @@ def index():
             latest_trip_params
         ).fetchall()
         
-            
-        trip_count_query = """
-            SELECT COUNT(*) AS trip_count
-            FROM trips
-            WHERE user_id = ?
+        category_query = """
+            SELECT expenses.category, SUM(expenses.amount) AS total
+            FROM expenses
+            LEFT JOIN trips ON expenses.trip_id = trips.id
+            WHERE expenses.user_id = ?
         """
         
-        trip_count_params =[session["user_id"]]
+        category_params = [session["user_id"]]
         
         if selected_season:
-            trip_count_query += " AND trips.season = ?"
-            trip_count_params.append(selected_season)
-        
-        trip_count = conn.execute(
-            trip_count_query,
-            trip_count_params
-        ).fetchone()
-                
-        total_amount = 0
-        for expense in expenses:
-            total_amount += expense["amount"]
+            category_query += " AND trips.season = ?"
+            category_params.append(selected_season)
             
-            
-        if int(trip_count["trip_count"]) != 0:
-            average_amount = total_amount // int(trip_count["trip_count"])
-        else:
-            average_amount = 0
+        category_query += """
+            GROUP BY expenses.category
+            ORDER BY total DESC
+        """
         
-
+        category_totals = conn.execute(
+            category_query,
+            category_params
+        ).fetchall()
+        
+        trips_query = """
+                SELECT
+                trips.title,
+                COALESCE(SUM(expenses.amount), 0) AS total_amount
+                FROM trips
+                LEFT JOIN expenses ON trips.id = expenses.trip_id
+                WHERE trips.user_id = ?
+                """
+        trips_param = [session["user_id"]]
+        
+        if selected_season:
+            trips_query += "AND trips.season = ?"
+            trips_param.append(selected_season)
+            
+        trips_query += """
+            GROUP BY 
+                trips.title
+            ORDER BY 
+                total_amount DESC, 
+                trips.id DESC
+            """
+        
+        trips = conn.execute(
+                trips_query,
+                trips_param
+                ).fetchall()
+        
     return render_template(
         "index.html",
-        app_name=app_name,
-        description=description,
-        expenses=expenses,
-        category_totals=category_totals,
-        monthly_totals=monthly_totals,
-        categories = CATEGORIES,
-        selected_category = selected_category,
-        selected_month = selected_month,
-        keyword = keyword,
         seasons = SEASONS,
-        selected_season = selected_season,
         future_trips = future_trips,
         latest_trips = latest_trips,
+        category_totals=category_totals,
+        selected_season = selected_season,
         trip_count = trip_count,
         total_amount=total_amount,
-        average_amount = average_amount
+        average_amount = average_amount,
+        trips = trips
     )
 
 
@@ -442,100 +504,8 @@ def expenses():
         trip_titles = trip_titles,
         keyword = keyword
     )
-
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    
-    error = None
-    username = ""
-    
-    if request.method == "POST":
-        username = request.form["username"].strip()
-        password = request.form["password"]
-        
-        if username == "":
-            error =  "ユーザー名を入力してください。"
-        elif password == "":
-            error = "パスワードを入力してください。"
-        else:
-            password_hash = generate_password_hash(password)
-            
-            try:
-                with sqlite3.connect(DATABASE) as conn:
-                    conn.execute(
-                        """
-                        INSERT INTO users (username, password_hash)
-                        VALUES (?, ?)
-                        """,
-                        (username, password_hash),
-                    )
-            except sqlite3.IntegrityError:
-                error = "そのユーザー名はすでに使われています。"
-            
-            else:
-                flash("ユーザー登録が完了しました。ログインしてください。")
-                return redirect(url_for("login"))
-
-    return render_template(
-        "register.html",
-        error = error,
-        username =  username
-    )
     
     
-@app.route("/login", methods = ["GET", "POST"])
-def login():
-    error = None
-    username = ""
-    
-    if request.method == "POST":
-            username = request.form["username"].strip()
-            password = request.form["password"]
-
-            if username == "":
-                error = "ユーザー名を入力してください。"
-            elif password == "":
-                error = "パスワードを入力してください。"
-            else:
-                with sqlite3.connect(DATABASE) as conn:
-                    conn.row_factory = sqlite3.Row
-                    user = conn.execute(
-                        """
-                        SELECT id, username, password_hash
-                        FROM users
-                        WHERE username = ?
-                        """,
-                        (username,),
-                    ).fetchone()
-                
-                if user is None:
-                    error = "ユーザー名またはパスワードが正しくありません。"
-                elif not check_password_hash(user["password_hash"], password):
-                    error = "ユーザー名またはパスワードが正しくありません。"
-                else:
-                    session["user_id"] = user["id"]
-                    session["username"] = user["username"]
-                    flash("ログインしました。")
-                    return redirect(url_for("index"))
-            
-    return render_template(
-        "login.html",
-        error = error,
-        username = username
-    )
-
-
-@app.route("/logout", methods=["POST"])
-def logout():
-    session.clear()
-    flash("ログアウトしました。")
-    return redirect(url_for("login"))
-
-
-@app.route("/about")
-def about():
-    return render_template("about.html")
-
 @app.route("/trips")
 def trips():
     login_check = login_required()
@@ -560,8 +530,6 @@ def trips():
                 trips.title,
                 trips.season,
                 trips.match_date,
-                trips.opponent,
-                trips.stadium,
                 trips.memo,
                 COALESCE(SUM(expenses.amount), 0) AS total_amount,
                 COUNT(expenses.id) AS expense_count
@@ -574,10 +542,8 @@ def trips():
                 trips.title,
                 trips.season,
                 trips.match_date,
-                trips.opponent,
-                trips.stadium,
                 trips.memo
-            ORDER BY total_amount DESC,
+            ORDER BY  trips.match_date DESC,
                     trips.id DESC
             """,
             (params),
@@ -1090,6 +1056,82 @@ def delete_expense(expense_id):
         return redirect(url_for("trip_detail", trip_id = return_trip_id))
     
     return redirect(url_for("expenses"))
+
+
+@app.route("/statistics")
+def statistics():
+    
+    login_check = login_required()
+    if login_check:
+        return login_check
+    
+    selected_season = request.args.get("season", "").strip()
+    
+    with sqlite3.connect(DATABASE) as conn:
+            conn.row_factory = sqlite3.Row
+            
+            category_query = """
+                    SELECT expenses.category, SUM(expenses.amount) AS total
+                    FROM expenses
+                    LEFT JOIN trips ON expenses.trip_id = trips.id
+                    WHERE expenses.user_id = ?
+                """
+                
+            category_params = [session["user_id"]]
+            
+            if selected_season:
+                category_query += " AND trips.season = ?"
+                category_params.append(selected_season)
+                
+            category_query += """
+                GROUP BY expenses.category
+                ORDER BY total DESC
+            """
+            
+    
+            category_totals = conn.execute(
+                category_query,
+                category_params
+            ).fetchall()
+                
+            monthly_query ="""
+                    SELECT substr(spent_on, 1, 7) AS month, SUM(amount) AS total
+                    FROM expenses
+                    LEFT JOIN trips ON expenses.trip_id = trips.id
+                    WHERE spent_on IS NOT NULL 
+                    AND spent_on != '' 
+                    AND expenses.user_id = ?
+                """
+                
+            monthly_params = [session["user_id"]]
+                
+            if selected_season:
+                monthly_query += " AND trips.season = ?"
+                monthly_params.append(selected_season)
+                    
+            monthly_query += """
+                    GROUP BY month
+                    ORDER BY month DESC
+                    """
+                
+            monthly_totals = conn.execute(
+                monthly_query,
+                monthly_params
+                ).fetchall()
+                
+    return render_template(
+        "statistics.html",
+        seasons = SEASONS,
+        selected_season = selected_season,
+        category_totals = category_totals,
+        monthly_totals = monthly_totals,
+    )
+
+
+@app.route("/about")
+def about():
+    return render_template("about.html")
+
 
 @app.errorhandler(404)
 def page_not_found(error):

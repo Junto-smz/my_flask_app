@@ -14,7 +14,7 @@
         <div>
             <label for="season">シーズン</label>
             <select id="season" name="season">
-                <option value="">選択してください。</option>
+                <option value="">選択してください。(必須項目)</option>
 
                 {% for season_option in seasons %}
                     <option 
@@ -29,7 +29,7 @@
         
         <div>
             <label for="title">遠征名</label>
-            <input type="text" id="title" name="title" value="{{ title }}">
+            <input type="text" id="title" name="title" value="{{ title }}" placeholder="※必須項目">
         </div>
 
         <div>
@@ -39,7 +39,7 @@
 
         <div>
             <label for="opponent">対戦相手</label>
-            <input type="text" id="opponent" name="opponent" value="{{ opponent }}">
+            <input type="text" id="opponent" name="opponent" value="{{ opponent }}" placeholder="※必須項目">
         </div>
 
         <div>
