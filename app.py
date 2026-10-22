@@ -220,8 +220,7 @@ def index():
                 trips.opponent,
                 trips.stadium
             ORDER BY trips.match_date DESC, trips.id DESC
-            LIMIT 3
-        """
+            """
         
         future_trips = conn.execute(
             future_trip_query,
@@ -560,8 +559,6 @@ def trips():
                 trips.title,
                 trips.season,
                 trips.match_date,
-                trips.opponent,
-                trips.stadium,
                 trips.memo,
                 COALESCE(SUM(expenses.amount), 0) AS total_amount,
                 COUNT(expenses.id) AS expense_count
@@ -574,8 +571,6 @@ def trips():
                 trips.title,
                 trips.season,
                 trips.match_date,
-                trips.opponent,
-                trips.stadium,
                 trips.memo
             ORDER BY total_amount DESC,
                     trips.id DESC

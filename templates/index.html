@@ -41,15 +41,51 @@
         </p>
     </section>
 
-{% if future_trips %}
-    <section class="dashboard-card">
-            <h2>未来の遠征</h2>
+    {% if future_trips %}
+        <section class="dashboard-card">
+                <h2>未来の遠征</h2>
 
+                <div class="table-wrapper">
+                <table class="latest-trips-table">
+                    <thead>
+                        <tr>
+                            <th>試合日</th>
+                            <th>タイトル</th>
+                            <th>合計金額</th>
+                            <th>支出件数</th>
+                            <th>対戦相手</th>
+                        </tr>
+                    </thead>
+                    
+                    <tbody>
+                        {% for lt in future_trips %}
+                            <tr>
+                                <td>{{ lt.match_date }}</td>
+                                <td><a href="{{ url_for('trip_detail', trip_id = lt.id) }}">
+                                    {{ lt.title }}</a></td>
+                                <td>{{ lt.total_amount | yen }}</td>
+                                <td>{{ lt.expense_count }}件</td>
+                                <td>{{ lt.opponent}}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    {% endif %}
+
+    <section class="dashboard-card">
+        {% if selected_season %}
+            <h2>直近の遠征 in {{ selected_season}}</h2>
+        {% else %}
+            <h2>直近の遠征</h2>
+        {% endif %}
+
+        {% if latest_trips %}
             <div class="table-wrapper">
             <table class="latest-trips-table">
                 <thead>
                     <tr>
-                        <th>シーズン</th>
                         <th>試合日</th>
                         <th>タイトル</th>
                         <th>合計金額</th>
@@ -59,9 +95,8 @@
                 </thead>
                 
                 <tbody>
-                    {% for lt in future_trips %}
+                    {% for lt in latest_trips %}
                         <tr>
-                            <td>{{ lt.season or "" }}</td>
                             <td>{{ lt.match_date }}</td>
                             <td><a href="{{ url_for('trip_detail', trip_id = lt.id) }}">
                                 {{ lt.title }}</a></td>
@@ -73,51 +108,10 @@
                 </tbody>
             </table>
         </div>
+        {% else %}
+            <p>該当する遠征はありません。</p>
         {% endif %}
     </section>
-
-<section class="dashboard-card">
-    {% if selected_season %}
-        <h2>直近の遠征 in {{ selected_season}}</h2>
-    {% else %}
-        <h2>直近の遠征</h2>
-    {% endif %}
-
-    {% if latest_trips %}
-        <div class="table-wrapper">
-        <table class="latest-trips-table">
-            <thead>
-                <tr>
-                    <th>シーズン</th>
-                    <th>試合日</th>
-                    <th>タイトル</th>
-                    <th>合計金額</th>
-                    <th>支出件数</th>
-                    <th>対戦相手</th>
-                </tr>
-            </thead>
-            
-            <tbody>
-                {% for lt in latest_trips %}
-                    <tr>
-                        <td>{{ lt.season or "" }}</td>
-                        <td>{{ lt.match_date }}</td>
-                        <td><a href="{{ url_for('trip_detail', trip_id = lt.id) }}">
-                            {{ lt.title }}</a></td>
-                        <td>{{ lt.total_amount | yen }}</td>
-                        <td>{{ lt.expense_count }}件</td>
-                        <td>{{ lt.opponent}}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% else %}
-        <p>該当する遠征はありません。</p>
-    {% endif %}
-</section>
-
-
 
     <section class="dashboard-card">
         <h2>カテゴリ別支出</h2>
