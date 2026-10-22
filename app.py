@@ -860,6 +860,7 @@ def new_expense():
         memo = request.form["memo"].strip()
         trip_id = request.form["trip_id"].strip()
         return_trip_id = request.form.get("return_trip_id", "").strip()
+        submit_action = request.form.get("submit_action","save")
         
         if not validate_trip_owner(trip_id):
             abort(404)
@@ -879,6 +880,17 @@ def new_expense():
                     (session["user_id"], trip_id, category, amount, spent_on, memo),
                 )
             flash("支出を登録できました。")
+            
+            if submit_action == "continue":
+                if trip_id:
+                    return redirect(
+                        url_for(
+                            "new_expense",
+                            trip_id = trip_id
+                        )
+                    )
+                return redirect(url_for("new_expense"))
+                
             if trip_id:
                 return redirect(url_for("trip_detail", trip_id=trip_id))
 
