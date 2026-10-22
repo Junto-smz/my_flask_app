@@ -180,10 +180,6 @@ def index():
     login_check = login_required()
     if login_check:
         return login_check
-    
-    selected_category = request.args.get("category", "")
-    selected_month = request.args.get("month", "")    
-    keyword = request.args.get("keyword","").strip()
     selected_season = request.args.get("season", "").strip()
     
     with sqlite3.connect(DATABASE) as conn:
@@ -197,18 +193,6 @@ def index():
                 
         params = [session["user_id"]]
 
-        if selected_category:
-                query += " AND expenses.category = ?"
-                params.append(selected_category)
-            
-        if selected_month:
-                query += " AND substr(expenses.spent_on, 1, 7) = ?"
-                params.append(selected_month)
-        
-        if keyword:
-            query += " AND expenses.memo LIKE ?"
-            params.append(f"%{keyword}%")
-        
         if selected_season:
             query += " AND trips.season = ?"
             params.append(selected_season)
@@ -244,32 +228,7 @@ def index():
             category_query,
             category_params
         ).fetchall()
-        
-        monthly_query ="""
-            SELECT substr(spent_on, 1, 7) AS month, SUM(amount) AS total
-            FROM expenses
-            LEFT JOIN trips ON expenses.trip_id = trips.id
-            WHERE spent_on IS NOT NULL 
-            AND spent_on != '' 
-            AND expenses.user_id = ?
-        """
-        
-        monthly_params = [session["user_id"]]
-        
-        if selected_season:
-            monthly_query += " AND trips.season = ?"
-            monthly_params.append(selected_season)
-            
-        monthly_query += """
-            GROUP BY month
-            ORDER BY month DESC
-        """
-        
-        monthly_totals = conn.execute(
-            monthly_query,
-            monthly_params
-        ).fetchall()
-        
+                
         today = date.today()
         future_trip_query = """
                     SELECT 
@@ -391,11 +350,7 @@ def index():
         future_trips = future_trips,
         latest_trips = latest_trips,
         category_totals=category_totals,
-        monthly_totals=monthly_totals,
-        selected_category = selected_category,
-        selected_month = selected_month,
         selected_season = selected_season,
-        keyword = keyword,
         trip_count = trip_count,
         total_amount=total_amount,
         average_amount = average_amount
@@ -560,7 +515,7 @@ def trips():
                 trips.season,
                 trips.match_date,
                 trips.memo
-            ORDER BY total_amount DESC,
+            ORDER BY  trips.match_date DESC,
                     trips.id DESC
             """,
             (params),
@@ -1077,7 +1032,46 @@ def delete_expense(expense_id):
 
 @app.route("/statistics")
 def statistics():
-    return render_template("statistics.html")
+    
+    login_check = login_required()
+    if login_check:
+        return login_check
+    
+    selected_season = request.args.get("season", "").strip()
+    
+    with sqlite3.connect(DATABASE) as conn:
+            conn.row_factory = sqlite3.Row
+            monthly_query ="""
+                    SELECT substr(spent_on, 1, 7) AS month, SUM(amount) AS total
+                    FROM expenses
+                    LEFT JOIN trips ON expenses.trip_id = trips.id
+                    WHERE spent_on IS NOT NULL 
+                    AND spent_on != '' 
+                    AND expenses.user_id = ?
+                """
+                
+            monthly_params = [session["user_id"]]
+                
+            if selected_season:
+                monthly_query += " AND trips.season = ?"
+                monthly_params.append(selected_season)
+                    
+            monthly_query += """
+                    GROUP BY month
+                    ORDER BY month DESC
+                    """
+                
+            monthly_totals = conn.execute(
+                monthly_query,
+                monthly_params
+                ).fetchall()
+                
+    return render_template(
+        "statistics.html",
+        seasons = SEASONS,
+        selected_season = selected_season,
+        monthly_totals = monthly_totals,
+    )
 
 
 @app.route("/about")

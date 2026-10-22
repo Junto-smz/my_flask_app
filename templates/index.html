@@ -216,27 +216,5 @@
             <p>支出はまだ登録されていません。</p>
         {% endif %}
     </section>
-
-
-    <section class="dashboard-card">
-        <h2>月別支出金額</h2>
-        {% if monthly_totals %}
-            <table>
-                <tr>
-                    <th>年月</th>
-                    <th>合計金額</th>
-                </tr>
-                {% for monthly_total in monthly_totals %}
-                    <tr>
-                        <td>{{ monthly_total.month }}</td>
-                        <td>{{ monthly_total.total | yen }}</td>
-                    </tr>
-                {% endfor %}
-            </table>
-        {% else %}
-            <p>日付付きの支出はまだ登録されていません。</p>
-        {% endif %}
-    </section>
-
-
+    
 {% endblock %}
