@@ -113,91 +113,174 @@
     </section>
 
     <section class="dashboard-card">
-        <h2>カテゴリ別支出</h2>
-        {% if category_totals %}
+        {% if category_totals or trips %}
+            {% if category_totals %}
+                <h2>カテゴリ別支出</h2>
 
-            <div class="chart-section">
-                <h3>カテゴリ別支出割合</h3>
+                <div class="chart-section">
+                    <h3>カテゴリ別支出割合</h3>
 
-                <div class="chart-container">
-                    <canvas id="categoryChart"></canvas>
+                    <div class="chart-container">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
                 </div>
-            </div>
 
-            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-            <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
-            <script>
-                    Chart.register(ChartDataLabels);
-    
-                const categoryLabels = [
-                    {% for category_total in category_totals %}
-                        {{ category_total.category | tojson}},
-                    {% endfor %}
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+                <script>
+                        Chart.register(ChartDataLabels);
+        
+                    const categoryLabels = [
+                        {% for category_total in category_totals %}
+                            {{ category_total.category | tojson}},
+                        {% endfor %}
+                        
+                    ];
                     
-                ];
-                
-                const categoryAmounts = [
-                    {% for category_total in category_totals %}
-                        {{ category_total.total }},
-                    {% endfor %}
-                ];
+                    const categoryAmounts = [
+                        {% for category_total in category_totals %}
+                            {{ category_total.total }},
+                        {% endfor %}
+                    ];
 
-                const ctx = document.getElementById("categoryChart")
+                    const ctx = document.getElementById("categoryChart")
 
-                new Chart(ctx,{
-                    type: "pie",
-                    data: {
-                        labels: categoryLabels,
-                        datasets:[
-                            {
-                                label:"支出金額",
-                                data:categoryAmounts
-                            }
-                        ]
-                    },
-                    options:{
-                        responsive:true,
-                        maintainAspectRatio: true,
-                        plugins: {
-                            datalabels:{
-                                formatter: function(value, context){
-                                    const data = context.chart.data.datasets[0].data;
+                    new Chart(ctx,{
+                        type: "pie",
+                        data: {
+                            labels: categoryLabels,
+                            datasets:[
+                                {
+                                    label:"支出金額",
+                                    data:categoryAmounts
+                                }
+                            ]
+                        },
+                        options:{
+                            responsive:true,
+                            maintainAspectRatio: true,
+                            plugins: {
+                                datalabels:{
+                                    formatter: function(value, context){
+                                        const data = context.chart.data.datasets[0].data;
 
-                                    const total = data.reduce(
-                                        (sum, amount) => sum + amount,
-                                        0
-                                    );
+                                        const total = data.reduce(
+                                            (sum, amount) => sum + amount,
+                                            0
+                                        );
 
-                                    const percentage = total === 0
-                                        ? 0
-                                        : (value / total * 100).toFixed(1);
+                                        const percentage = total === 0
+                                            ? 0
+                                            : (value / total * 100).toFixed(1);
 
-                                    const label = context.chart.data.labels[context.dataIndex];
+                                        const label = context.chart.data.labels[context.dataIndex];
 
-                                    if (percentage < 10){
+                                        if (percentage < 10){
+                                            return label
+                                                    + "\n"
+                                                    + percentage 
+                                                    + "%";
+                                        }
+
+
                                         return label
-                                                + "\n"
-                                                + percentage 
-                                                + "%";
-                                    }
-
-
-                                    return label
-                                        + "\n" 
-                                        + value.toLocaleString() 
-                                        + "円\n" 
-                                        + percentage 
-                                        + "%";
-                                },
-                                font:{
-                                    weight: "bold"
-                                },
-                                textAlign: "center"
+                                            + "\n" 
+                                            + value.toLocaleString() 
+                                            + "円\n" 
+                                            + percentage 
+                                            + "%";
+                                    },
+                                    font:{
+                                        weight: "bold"
+                                    },
+                                    textAlign: "center"
+                                }
                             }
                         }
-                    }
-                });
-            </script>
+                    });
+                </script>
+            {% endif %}
+
+            {# ここから遠征別 #}
+            {% if trips %}
+                <div class="chart-section">
+                    <h2>遠征別支出割合</h2>
+
+                    <div class="chart-container">
+                        <canvas id="tripChart"></canvas>
+                    </div>
+                </div>
+                    
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+                <script>
+                    Chart.register(ChartDataLabels);
+
+                    const tripLabels = [
+                        {% for trip in trips %}
+                            {{ trip.title | tojson}},
+                        {% endfor %}
+                        
+                    ];
+                    
+                    const tripAmounts = [
+                        {% for trip in trips %}
+                            {{ trip.total_amount }},
+                        {% endfor %}
+                    ];
+
+                    const ttx = document.getElementById("tripChart")
+
+                    new Chart(ttx,{
+                        type: "pie",
+                        data: {
+                            labels: tripLabels,
+                            datasets:[
+                                {
+                                    label:"支出金額",
+                                    data:tripAmounts
+                                }
+                            ]
+                        },
+                        options:{
+                            responsive:true,
+                            maintainAspectRatio: true,
+                            plugins: {
+                                datalabels:{
+                                    formatter: function(value, context){
+                                        const data = context.chart.data.datasets[0].data;
+
+                                        const total = data.reduce(
+                                            (sum, amount) => sum + amount,
+                                            0
+                                        );
+
+                                        const percentage = total === 0
+                                            ? 0
+                                            : (value / total * 100).toFixed(1);
+
+                                        const label = context.chart.data.labels[context.dataIndex];
+
+                                        if (percentage < 10){
+                                            return label;
+                                        }
+
+
+                                        return label
+                                            + "\n" 
+                                            + percentage 
+                                            + "%";
+                                    },
+                                    font:{
+                                        weight: "bold"
+                                    },
+                                    textAlign: "center"
+                                }
+                            }
+                        }
+                    });
+                </script>
+            {% endif %}
 
         {% else %}
             <p>支出はまだ登録されていません。</p>

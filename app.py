@@ -182,6 +182,7 @@ def index():
         return login_check
     selected_season = request.args.get("season", "").strip()
     
+    
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
         query = """
@@ -201,33 +202,34 @@ def index():
         
         expenses = conn.execute(query,params).fetchall()
         
+        trip_count_params =[session["user_id"]]
+        
+        trip_count_query = """
+            SELECT COUNT(*) AS trip_count
+            FROM trips
+            WHERE user_id = ?
+        """
+        
+        if selected_season:
+            trip_count_query += " AND trips.season = ?"
+            trip_count_params.append(selected_season)
+        
+        
+        trip_count = conn.execute(
+            trip_count_query,
+            trip_count_params
+        ).fetchone()
+        
         total_amount = 0
         for expense in expenses:
             total_amount += expense["amount"]
             
-        category_query = """
-            SELECT expenses.category, SUM(expenses.amount) AS total
-            FROM expenses
-            LEFT JOIN trips ON expenses.trip_id = trips.id
-            WHERE expenses.user_id = ?
-        """
         
-        category_params = [session["user_id"]]
-        
-        if selected_season:
-            category_query += " AND trips.season = ?"
-            category_params.append(selected_season)
+        if int(trip_count["trip_count"]) != 0:
+            average_amount = total_amount // int(trip_count["trip_count"])
+        else:
+            average_amount = 0
             
-        category_query += """
-            GROUP BY expenses.category
-            ORDER BY total DESC
-        """
-        
-
-        category_totals = conn.execute(
-            category_query,
-            category_params
-        ).fetchall()
                 
         today = date.today()
         future_trip_query = """
@@ -319,30 +321,56 @@ def index():
             latest_trip_params
         ).fetchall()
         
-            
-        trip_count_query = """
-            SELECT COUNT(*) AS trip_count
-            FROM trips
-            WHERE user_id = ?
+        category_query = """
+            SELECT expenses.category, SUM(expenses.amount) AS total
+            FROM expenses
+            LEFT JOIN trips ON expenses.trip_id = trips.id
+            WHERE expenses.user_id = ?
         """
         
-        trip_count_params =[session["user_id"]]
+        category_params = [session["user_id"]]
         
         if selected_season:
-            trip_count_query += " AND trips.season = ?"
-            trip_count_params.append(selected_season)
+            category_query += " AND trips.season = ?"
+            category_params.append(selected_season)
+            
+        category_query += """
+            GROUP BY expenses.category
+            ORDER BY total DESC
+        """
         
-        trip_count = conn.execute(
-            trip_count_query,
-            trip_count_params
-        ).fetchone()
-
-        if int(trip_count["trip_count"]) != 0:
-            average_amount = total_amount // int(trip_count["trip_count"])
-        else:
-            average_amount = 0
+        category_totals = conn.execute(
+            category_query,
+            category_params
+        ).fetchall()
         
-
+        trips_query = """
+                SELECT
+                trips.title,
+                COALESCE(SUM(expenses.amount), 0) AS total_amount
+                FROM trips
+                LEFT JOIN expenses ON trips.id = expenses.trip_id
+                WHERE trips.user_id = ?
+                """
+        trips_param = [session["user_id"]]
+        
+        if selected_season:
+            trips_query += "AND trips.season = ?"
+            trips_param.append(selected_season)
+            
+        trips_query += """
+            GROUP BY 
+                trips.title
+            ORDER BY 
+                total_amount DESC, 
+                trips.id DESC
+            """
+        
+        trips = conn.execute(
+                trips_query,
+                trips_param
+                ).fetchall()
+        
     return render_template(
         "index.html",
         seasons = SEASONS,
@@ -352,7 +380,8 @@ def index():
         selected_season = selected_season,
         trip_count = trip_count,
         total_amount=total_amount,
-        average_amount = average_amount
+        average_amount = average_amount,
+        trips = trips
     )
 
 
