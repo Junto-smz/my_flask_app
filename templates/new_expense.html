@@ -23,7 +23,7 @@
                 <option value="">未選択(必須項目)</option>
                 {% for trip in trips %}
                     <option value="{{ trip.id }}" {% if trip_id == trip.id|string %}selected{% endif %}>
-                        {{ trip.match_date }} {{ trip.title }}
+                        {{ trip.title }}
                     </option>
                 {% endfor %}
             </select>
