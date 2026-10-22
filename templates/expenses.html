@@ -7,19 +7,20 @@
 {% block content %}
 <h2>支出検索</h2>
 
-    {% if expenses %}
-        <form method="get" action="{{url_for('expenses') }}">
+    <form method="get" action="{{url_for('expenses') }}" class="filter-form">
+        <div>
             <label for="season">シーズンで絞り込み</label>
                 <select id="season" name="season">
-                    <option value="">すべて</option>
+                    <option value="{{selected_season}}" {% if selected_season %}selected{% endif %}>すべて</option>
                     {% for season in seasons %}
                         <option value="{{ season }}" {% if selected_season == season %}selected{% endif %}>
                             {{season}}
                         </option>
                     {% endfor %}
                 </select>
+        </div>
 
-        <form method="get" action="{{url_for('expenses') }}">
+        <div>
             <label for="title">遠征で絞り込み</label>
                 <select id="title" name="title">
                     <option value="">すべて</option>
@@ -29,7 +30,9 @@
                         </option>
                     {% endfor %}
                 </select>
+        </div>
 
+        <div>
             <label for="category">カテゴリで絞り込み</label>
             <select id="category" name="category">
                 <option value="">すべて</option>
@@ -39,7 +42,10 @@
                     </option>
                 {% endfor %}
             </select>
+        </div>
 
+
+        <div>
             <label for="month">月で絞り込み</label>
             <select id="month" name="month">
                 <option value="">すべて</option>
@@ -49,45 +55,31 @@
                     </option>
                 {% endfor %}
             </select> 
+        </div>
 
+        <div>
             <label>メモ検索:</label>
             <input type="text" name="keyword" value="{{ keyword }}" placeholder="例:新幹線、ホテル">
+        </div>
 
 
-            <button type="submit">絞り込み</button>
-        </form>
-    {% endif %}
+        <button type="submit" value="filter">絞り込み</button>
+        <button type="submit" name="action" value="clear" action="{{ url_for('expenses') }}">
+            絞り込みを解除
+        </button>
+    </form>
 
 
-    {% if selected_season or selected_trip_title or selected_category or selected_month or keyword %}
+    {% if active_season or active_trip_title or active_category or active_month or active_keyword %}
         <p>現在の絞り込み：
-        {% if selected_season %}
-            ［{{selected_season}}］
-        {% endif %}
-
-        {% if selected_trip_title %}
-            ［{{ selected_trip_title }}］
-        {% endif %}
-
-        {% if selected_category %}
-            ［{{ selected_category }}］
-        {% endif %}
-
-        {% if selected_month %}
-            ［{{ selected_month }}］
-        {% endif %}
-
-        {% if keyword %}
-            ［{{ keyword }}］
-        {% endif %}
+        {% if active_season %}［{{active_season}}］{% endif %}
+        {% if active_trip_title %}［{{active_trip_title}}］{% endif %}
+        {% if active_category %}［{{active_category}}］{% endif %}
+        {% if active_month %}［{{active_month}}］{% endif %}
+        {% if active_keyword %}［{{active_keyword}}］{% endif %}
         </p>
     {% endif %}
 
-    {% if (expenses != []) and (selected_season or selected_trip_title or selected_category or selected_month or keyword) %}
-        <p>
-            <a href="{{url_for('expenses') }}">絞り込みを解除</a>
-        </p>
-    {% endif %}
 
     {% if expenses %}
         <table>
@@ -121,9 +113,6 @@
         </table>
     {% else %}
         <p>該当する支出はありません。</p>
-        <p>
-            <a href="{{url_for('expenses') }}">絞り込みを解除</a>
-        </p>
     {% endif %}
 
 {% endblock content %}

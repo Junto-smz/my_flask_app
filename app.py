@@ -406,6 +406,7 @@ def expenses():
     selected_category = request.args.get("category", "")
     selected_month = request.args.get("month", "")
     keyword = request.args.get("keyword","").strip()
+    action = request.args.get("action", "filter")
     
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
@@ -424,25 +425,39 @@ def expenses():
                 
         params = [session["user_id"]]
         
-        if selected_season:
-            query += "AND trips.season = ?"
-            params.append(selected_season)
-
-        if selected_trip_title:
-            query += "AND trips.title = ?"
-            params.append(selected_trip_title)
-        if selected_category:
-                query += " AND expenses.category = ?"
-                params.append(selected_category)
+        if action == "clear":
+            active_season = ""
+            active_trip_title = ""
+            active_category = ""
+            active_month = ""
+            active_keyword = ""
+        else:
+            active_season = selected_season
+            active_trip_title = selected_trip_title
+            active_category = selected_category
+            active_month = selected_month
+            active_keyword = keyword
             
-        if selected_month:
-                query += " AND substr(expenses.spent_on, 1, 7) = ?"
-                params.append(selected_month)
-        
-        if keyword:
-            query += " AND expenses.memo LIKE ?"
-            params.append(f"%{keyword}%")
+        if action != "clear":
+            if selected_season:
+                query += "AND trips.season = ?"
+                params.append(selected_season)
+
+            if selected_trip_title:
+                query += "AND trips.title = ?"
+                params.append(selected_trip_title)
+            if selected_category:
+                    query += " AND expenses.category = ?"
+                    params.append(selected_category)
                 
+            if selected_month:
+                    query += " AND substr(expenses.spent_on, 1, 7) = ?"
+                    params.append(selected_month)
+            
+            if keyword:
+                query += " AND expenses.memo LIKE ?"
+                params.append(f"%{keyword}%")
+                    
         query += " ORDER BY expenses.spent_on DESC, expenses.id DESC"
         
         expenses = conn.execute(query,params).fetchall()
@@ -511,7 +526,12 @@ def expenses():
         selected_month = selected_month,
         selected_trip_title = selected_trip_title,
         trip_titles = trip_titles,
-        keyword = keyword
+        keyword = keyword,
+        active_season = active_season,
+        active_trip_title = active_trip_title,
+        active_category = active_category,
+        active_month = active_month,
+        active_keyword = active_keyword
     )
     
     
