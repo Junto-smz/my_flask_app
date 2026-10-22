@@ -90,8 +90,7 @@ def index():
     login_check = login_required()
     if login_check:
         return login_check
-    app_name = "Jリーグアウェイ遠征家計簿"
-    description = "遠征にかかった費用を記録・管理するアプリです。"
+    
     selected_category = request.args.get("category", "")
     selected_month = request.args.get("month", "")    
     keyword = request.args.get("keyword","").strip()
@@ -100,12 +99,7 @@ def index():
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
         query = """
-                    SELECT  expenses.id, 
-                            expenses.category,
-                            expenses.amount,
-                            expenses.spent_on,
-                            expenses.memo,
-                            trips.title AS trip_title
+                    SELECT expenses.amount
                     FROM expenses
                     LEFT JOIN trips ON expenses.trip_id = trips.id
                     WHERE expenses.user_id = ?
@@ -133,6 +127,10 @@ def index():
         
         expenses = conn.execute(query,params).fetchall()
         
+        total_amount = 0
+        for expense in expenses:
+            total_amount += expense["amount"]
+            
         category_query = """
             SELECT expenses.category, SUM(expenses.amount) AS total
             FROM expenses
@@ -289,12 +287,7 @@ def index():
             trip_count_query,
             trip_count_params
         ).fetchone()
-                
-        total_amount = 0
-        for expense in expenses:
-            total_amount += expense["amount"]
-            
-            
+
         if int(trip_count["trip_count"]) != 0:
             average_amount = total_amount // int(trip_count["trip_count"])
         else:
@@ -303,19 +296,16 @@ def index():
 
     return render_template(
         "index.html",
-        app_name=app_name,
-        description=description,
-        expenses=expenses,
-        category_totals=category_totals,
-        monthly_totals=monthly_totals,
-        categories = CATEGORIES,
-        selected_category = selected_category,
-        selected_month = selected_month,
-        keyword = keyword,
         seasons = SEASONS,
-        selected_season = selected_season,
+        categories = CATEGORIES,
         future_trips = future_trips,
         latest_trips = latest_trips,
+        category_totals=category_totals,
+        monthly_totals=monthly_totals,
+        selected_category = selected_category,
+        selected_month = selected_month,
+        selected_season = selected_season,
+        keyword = keyword,
         trip_count = trip_count,
         total_amount=total_amount,
         average_amount = average_amount

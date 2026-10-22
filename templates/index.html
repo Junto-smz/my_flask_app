@@ -3,7 +3,7 @@
 {% block title %}トップ{% endblock %}
 
 {% block content %}
-    <p>{{ description }}</p>
+    <p>遠征にかかった費用を記録・管理するアプリです。</p>
     <p>まだ遠征を１つも登録されていない方は
         <a href="{{ url_for('new_trip') }}">遠征を登録する</a>
         ことをお勧めします。
@@ -58,14 +58,14 @@
                     </thead>
                     
                     <tbody>
-                        {% for lt in future_trips %}
+                        {% for ft in future_trips %}
                             <tr>
-                                <td>{{ lt.match_date }}</td>
-                                <td><a href="{{ url_for('trip_detail', trip_id = lt.id) }}">
-                                    {{ lt.title }}</a></td>
-                                <td>{{ lt.total_amount | yen }}</td>
-                                <td>{{ lt.expense_count }}件</td>
-                                <td>{{ lt.opponent}}</td>
+                                <td>{{ ft.match_date }}</td>
+                                <td><a href="{{ url_for('trip_detail', trip_id = ft.id) }}">
+                                    {{ ft.title }}</a></td>
+                                <td>{{ ft.total_amount | yen }}</td>
+                                <td>{{ ft.expense_count }}件</td>
+                                <td>{{ ft.opponent}}</td>
                             </tr>
                         {% endfor %}
                     </tbody>
