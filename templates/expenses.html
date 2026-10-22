@@ -8,7 +8,7 @@
 <h2>支出検索</h2>
 
     <form method="get" action="{{url_for('expenses') }}" class="filter-form">
-        <div>
+        <div class="filter-field">
             <label for="season">シーズンで絞り込み</label>
                 <select id="season" name="season">
                     <option value="{{selected_season}}" {% if selected_season %}selected{% endif %}>すべて</option>
@@ -20,7 +20,7 @@
                 </select>
         </div>
 
-        <div>
+        <div class="filter-field">
             <label for="title">遠征で絞り込み</label>
                 <select id="title" name="title">
                     <option value="">すべて</option>
@@ -32,7 +32,7 @@
                 </select>
         </div>
 
-        <div>
+        <div class="filter-field">
             <label for="category">カテゴリで絞り込み</label>
             <select id="category" name="category">
                 <option value="">すべて</option>
@@ -45,7 +45,7 @@
         </div>
 
 
-        <div>
+        <div class="filter-field">
             <label for="month">月で絞り込み</label>
             <select id="month" name="month">
                 <option value="">すべて</option>
@@ -57,16 +57,18 @@
             </select> 
         </div>
 
-        <div>
-            <label>メモ検索:</label>
-            <input type="text" name="keyword" value="{{ keyword }}" placeholder="例:新幹線、ホテル">
+        <div class="filter-field">
+            <label for="keyword">メモ検索:</label>
+            <input type="text" id="keyword" name="keyword" value="{{ keyword }}" placeholder="例:新幹線、ホテル">
         </div>
 
 
-        <button type="submit" value="filter">絞り込み</button>
-        <button type="submit" name="action" value="clear" action="{{ url_for('expenses') }}">
-            絞り込みを解除
-        </button>
+        <div class="filter-actions">
+            <button type="submit" value="filter">絞り込み</button>
+            <button type="submit" name="action" value="clear" action="{{ url_for('expenses') }}">
+                絞り込みを解除
+            </button>
+        </div>
     </form>
 
 
