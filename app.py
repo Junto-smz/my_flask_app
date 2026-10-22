@@ -35,8 +35,8 @@ CATEGORIES = [
 ]
 
 SEASONS = [
-    "百年構想リーグ",
-    "2026/27シーズン"
+    "2026/27シーズン",
+    "百年構想リーグ"
 ]
 
 def login_required():

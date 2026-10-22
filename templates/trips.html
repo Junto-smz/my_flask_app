@@ -45,7 +45,7 @@
                     <tr>
                         <td>
                             <a href="{{ url_for('trip_detail', trip_id = trip.id )}}">詳細</a>
-                            <a href="{{ url_for('new_expense', trip_id = trip.id) }}">追加</a><br>
+                            <a href="{{ url_for('new_expense', trip_id = trip.id) }}">支出追加</a><br>
                             <a href="{{ url_for('edit_trip', trip_id=trip.id) }}">編集</a>
                             <a href="{{ url_for('confirm_delete_trip', trip_id = trip.id) }}">削除確認</a>
                         </td>
