@@ -7,7 +7,7 @@
 
     <form method="get" action="{{url_for('trips') }}">
         <h3><label for="season">シーズンを選択する</label></h3>
-        <select id="season" name="season">
+        <select id="season" name="season" onchange="this.form.submit()">
             <option value="">すべて</option>
 
             {% for season_option in seasons %}
@@ -19,8 +19,6 @@
                     </option>
             {% endfor %}
         </select>
-
-        <button type="submit">絞り込む</button>
     </form>
 
 <p>

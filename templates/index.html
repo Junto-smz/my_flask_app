@@ -11,7 +11,7 @@
 
     <form method="get" action="{{ url_for('index') }}">
         <h2><label for="season">シーズンを選択する</label></h2>
-        <select id="season" name="season">
+        <select id="season" name="season" onchange="this.form.submit()">
             <option value="">すべて</option>
 
             {% for season_option in seasons %}
@@ -23,8 +23,6 @@
                     </option>
             {% endfor %}
         </select>
-
-        <button type="submit">選択</button>
     </form>
 
     <section class="dashboard-card summary-card">
@@ -81,6 +79,18 @@
         {% endif %}
 
         {% if latest_trips %}
+            <form method="get" action="{{ url_for('index') }}" >
+                <input type="hidden" name="season" value="{{ selected_season }}">
+                <label for="latest_limit">表示件数</label>
+
+                <select id="latest_limit" name="latest_limit" onchange="this.form.submit()">
+                    <option value="3" {% if latest_limit == 3 %}selected{% endif %}>３件</option>
+                    <option value="5" {% if latest_limit == 5 %}selected{% endif %}>５件</option>
+                    <option value="10" {% if latest_limit == 10 %}selected{% endif %}>10件</option>
+                    
+                </select>
+            </form>
+
             <div class="table-wrapper">
             <table class="latest-trips-table">
                 <thead>

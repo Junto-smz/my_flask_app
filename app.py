@@ -181,6 +181,12 @@ def index():
     if login_check:
         return login_check
     selected_season = request.args.get("season", "").strip()
+    latest_limit = request.args.get("latest_limit","3")
+    
+    if latest_limit not in ["3","5","10"]:
+        latest_limit = "3"
+        
+    latest_limit = int(latest_limit)
     
     
     with sqlite3.connect(DATABASE) as conn:
@@ -304,6 +310,8 @@ def index():
             latest_trip_query += " AND trips.season = ?"
             latest_trip_params.append(selected_season)
         
+        latest_trip_params.append(latest_limit)
+        
         latest_trip_query += """
             GROUP BY 
                 trips.id,
@@ -313,7 +321,7 @@ def index():
                 trips.opponent,
                 trips.stadium
             ORDER BY trips.match_date DESC, trips.id DESC
-            LIMIT 3
+            LIMIT ?
         """
         
         latest_trips = conn.execute(
@@ -375,6 +383,7 @@ def index():
         "index.html",
         seasons = SEASONS,
         future_trips = future_trips,
+        latest_limit = latest_limit,
         latest_trips = latest_trips,
         category_totals=category_totals,
         selected_season = selected_season,
