@@ -3,73 +3,64 @@
 {% block title %}遠征詳細{% endblock %}
 
 {% block content %}
+    <p>
+        <a href="{{ url_for('trips') }}">←戻る</a>
+    </p>
+
     <h2>遠征詳細</h2>
+        <table>
+            <tr>
+                <th>シーズン</th>
+                <td>{{ trip.season or ""}}</td>
+            </tr>
+            <tr>
+                <th>試合日</th>
+                <td>{{ trip.match_date }}</td>
+            </tr>
+            <tr>
+                <th>遠征名</th>
+                <td>{{ trip.title }}</td>
+            </tr>
+            <tr>
+                <th>対戦相手</th>
+                <td>{{ trip.opponent }}</td>
+            </tr>
+            <tr>
+                <th>会場</th>
+                <td>{{ trip.stadium }}</td>
+            </tr>
+            <tr>
+                <th>メモ</th>
+                <td>{{trip.memo }}</td>
+            </tr>
+        </table>
+        <p>
+            <a href="{{ url_for('edit_trip', trip_id = trip.id) }}">この遠征を編集する</a>
+        </p>
 
-    <table>
-        <tr>
-            <th>シーズン</th>
-            <td>{{ trip.season or ""}}</td>
-        </tr>
-        <tr>
-            <th>試合日</th>
-            <td>{{ trip.match_date }}</td>
-        </tr>
-        <tr>
-            <th>遠征名</th>
-            <td>{{ trip.title }}</td>
-        </tr>
-        <tr>
-            <th>対戦相手</th>
-            <td>{{ trip.opponent }}</td>
-        </tr>
-        <tr>
-            <th>会場</th>
-            <td>{{ trip.stadium }}</td>
-        </tr>
-        <tr>
-            <th>メモ</th>
-            <td>{{trip.memo }}</td>
-        </tr>
-    </table>
+    <h2>この遠征の合計</h2>
+        <p class="total-amount">{{ total_amount | yen }}</p>
 
-    <h3>この遠征の合計</h3>
-    <p class="total-amount">{{ total_amount | yen }}</p>
-
-    <p class="total-amount">支出件数:　{{ expense_count }}件</p>
-
-    <h3>カテゴリ別合計</h3>
+        <p class="total-amount">支出件数:　{{ expense_count }}件</p>
+        
+        <p>
+            <a href="{{ url_for('new_expense', trip_id = trip.id) }}">この遠征に支出を追加</a>
+        </p>
 
     {% if category_totals %}
-        <table>
-            <thead>
-                <tr>
-                    <th>カテゴリ</th>
-                    <th>合計金額</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for category_total in category_totals %}
-                    <tr>
-                        <td>{{ category_total.category }}</td>
-                        <td>{{ category_total.total|yen }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <h2>カテゴリ別支出割合</h2>
+            <div class="chart-section">
 
-    <div class="chart-section">
-        <h3>カテゴリ別支出割合</h3>
+                <div class="chart-container">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
 
-        <div class="chart-container">
-            <canvas id="categoryChart"></canvas>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
             <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
             <script>
                     Chart.register(ChartDataLabels);
-    
+
                 const categoryLabels = [
                     {% for category_total in category_totals %}
                         {{ category_total.category | tojson}},
@@ -139,12 +130,31 @@
                     }
                 });
             </script>
+        
+        <h2>カテゴリ別合計</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>カテゴリ</th>
+                        <th>合計金額</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for category_total in category_totals %}
+                        <tr>
+                            <td>{{ category_total.category }}</td>
+                            <td>{{ category_total.total|yen }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
     {% else %}
         <p>カテゴリ別合計はまだありません。</p>
     {% endif %}
 
 
-    <h3>この遠征の支出一覧</h3>
+    <h2>この遠征の支出一覧</h2>
 
     {% if expenses %}
         <table>
@@ -178,12 +188,8 @@
     {% endif %}
 
     <p>
-        <a href="{{ url_for('edit_trip', trip_id = trip.id) }}">この遠征を編集する</a>
+            <a href="{{ url_for('new_expense', trip_id = trip.id) }}">この遠征に支出を追加</a>
     </p>
-    <p>
-        <a href="{{ url_for('new_expense', trip_id = trip.id) }}">この遠征に支出を追加</a>
-    </p>
-
     <p>
         <a href="{{ url_for('trips') }}">遠征一覧へ戻る</a>
     </p>
