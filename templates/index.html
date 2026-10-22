@@ -144,8 +144,10 @@
             </div>
 
             <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-            
+            <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
             <script>
+                    Chart.register(ChartDataLabels);
+    
                 const categoryLabels = [
                     {% for category_total in category_totals %}
                         {{ category_total.category | tojson}},
@@ -174,7 +176,44 @@
                     },
                     options:{
                         responsive:true,
-                        maintainAspectRatio: true
+                        maintainAspectRatio: true,
+                        plugins: {
+                            datalabels:{
+                                formatter: function(value, context){
+                                    const data = context.chart.data.datasets[0].data;
+
+                                    const total = data.reduce(
+                                        (sum, amount) => sum + amount,
+                                        0
+                                    );
+
+                                    const percentage = total === 0
+                                        ? 0
+                                        : (value / total * 100).toFixed(1);
+
+                                    const label = context.chart.data.labels[context.dataIndex];
+
+                                    if (percentage < 10){
+                                        return label
+                                                + "\n"
+                                                + percentage 
+                                                + "%";
+                                    }
+
+
+                                    return label
+                                        + "\n" 
+                                        + value.toLocaleString() 
+                                        + "円\n" 
+                                        + percentage 
+                                        + "%";
+                                },
+                                font:{
+                                    weight: "bold"
+                                },
+                                textAlign: "center"
+                            }
+                        }
                     }
                 });
             </script>
