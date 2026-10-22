@@ -85,6 +85,96 @@ def validate_expense_form(category, amount_text, spent_on):
     return None, amount
 
 
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    
+    error = None
+    username = ""
+    
+    if request.method == "POST":
+        username = request.form["username"].strip()
+        password = request.form["password"]
+        
+        if username == "":
+            error =  "ユーザー名を入力してください。"
+        elif password == "":
+            error = "パスワードを入力してください。"
+        else:
+            password_hash = generate_password_hash(password)
+            
+            try:
+                with sqlite3.connect(DATABASE) as conn:
+                    conn.execute(
+                        """
+                        INSERT INTO users (username, password_hash)
+                        VALUES (?, ?)
+                        """,
+                        (username, password_hash),
+                    )
+            except sqlite3.IntegrityError:
+                error = "そのユーザー名はすでに使われています。"
+            
+            else:
+                flash("ユーザー登録が完了しました。ログインしてください。")
+                return redirect(url_for("login"))
+
+    return render_template(
+        "register.html",
+        error = error,
+        username =  username
+    )
+    
+    
+@app.route("/login", methods = ["GET", "POST"])
+def login():
+    error = None
+    username = ""
+    
+    if request.method == "POST":
+            username = request.form["username"].strip()
+            password = request.form["password"]
+
+            if username == "":
+                error = "ユーザー名を入力してください。"
+            elif password == "":
+                error = "パスワードを入力してください。"
+            else:
+                with sqlite3.connect(DATABASE) as conn:
+                    conn.row_factory = sqlite3.Row
+                    user = conn.execute(
+                        """
+                        SELECT id, username, password_hash
+                        FROM users
+                        WHERE username = ?
+                        """,
+                        (username,),
+                    ).fetchone()
+                
+                if user is None:
+                    error = "ユーザー名またはパスワードが正しくありません。"
+                elif not check_password_hash(user["password_hash"], password):
+                    error = "ユーザー名またはパスワードが正しくありません。"
+                else:
+                    session["user_id"] = user["id"]
+                    session["username"] = user["username"]
+                    flash("ログインしました。")
+                    return redirect(url_for("index"))
+            
+    return render_template(
+        "login.html",
+        error = error,
+        username = username
+    )
+
+
+@app.route("/logout", methods=["POST"])
+def logout():
+    session.clear()
+    flash("ログアウトしました。")
+    return redirect(url_for("login"))
+
+
 @app.route("/")
 def index():
     login_check = login_required()
@@ -431,100 +521,8 @@ def expenses():
         trip_titles = trip_titles,
         keyword = keyword
     )
-
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    
-    error = None
-    username = ""
-    
-    if request.method == "POST":
-        username = request.form["username"].strip()
-        password = request.form["password"]
-        
-        if username == "":
-            error =  "ユーザー名を入力してください。"
-        elif password == "":
-            error = "パスワードを入力してください。"
-        else:
-            password_hash = generate_password_hash(password)
-            
-            try:
-                with sqlite3.connect(DATABASE) as conn:
-                    conn.execute(
-                        """
-                        INSERT INTO users (username, password_hash)
-                        VALUES (?, ?)
-                        """,
-                        (username, password_hash),
-                    )
-            except sqlite3.IntegrityError:
-                error = "そのユーザー名はすでに使われています。"
-            
-            else:
-                flash("ユーザー登録が完了しました。ログインしてください。")
-                return redirect(url_for("login"))
-
-    return render_template(
-        "register.html",
-        error = error,
-        username =  username
-    )
     
     
-@app.route("/login", methods = ["GET", "POST"])
-def login():
-    error = None
-    username = ""
-    
-    if request.method == "POST":
-            username = request.form["username"].strip()
-            password = request.form["password"]
-
-            if username == "":
-                error = "ユーザー名を入力してください。"
-            elif password == "":
-                error = "パスワードを入力してください。"
-            else:
-                with sqlite3.connect(DATABASE) as conn:
-                    conn.row_factory = sqlite3.Row
-                    user = conn.execute(
-                        """
-                        SELECT id, username, password_hash
-                        FROM users
-                        WHERE username = ?
-                        """,
-                        (username,),
-                    ).fetchone()
-                
-                if user is None:
-                    error = "ユーザー名またはパスワードが正しくありません。"
-                elif not check_password_hash(user["password_hash"], password):
-                    error = "ユーザー名またはパスワードが正しくありません。"
-                else:
-                    session["user_id"] = user["id"]
-                    session["username"] = user["username"]
-                    flash("ログインしました。")
-                    return redirect(url_for("index"))
-            
-    return render_template(
-        "login.html",
-        error = error,
-        username = username
-    )
-
-
-@app.route("/logout", methods=["POST"])
-def logout():
-    session.clear()
-    flash("ログアウトしました。")
-    return redirect(url_for("login"))
-
-
-@app.route("/about")
-def about():
-    return render_template("about.html")
-
 @app.route("/trips")
 def trips():
     login_check = login_required()
@@ -1075,6 +1073,15 @@ def delete_expense(expense_id):
         return redirect(url_for("trip_detail", trip_id = return_trip_id))
     
     return redirect(url_for("expenses"))
+
+
+
+
+
+@app.route("/about")
+def about():
+    return render_template("about.html")
+
 
 @app.errorhandler(404)
 def page_not_found(error):
