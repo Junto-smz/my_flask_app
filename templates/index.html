@@ -61,7 +61,9 @@
                                 <td><a href="{{ url_for('trip_detail', trip_id = ft.id) }}">
                                     {{ ft.title }}</a></td>
                                 <td>{{ ft.total_amount | yen }}</td>
-                                <td>{{ ft.expense_count }}件</td>
+                                <td>{{ ft.expense_count }}件
+                                    <a href="{{url_for('new_expense', trip_id = ft.id)}}">[追加]</a>
+                                </td>
                                 <td>{{ ft.opponent}}</td>
                             </tr>
                         {% endfor %}
@@ -110,7 +112,9 @@
                             <td><a href="{{ url_for('trip_detail', trip_id = lt.id) }}">
                                 {{ lt.title }}</a></td>
                             <td>{{ lt.total_amount | yen }}</td>
-                            <td>{{ lt.expense_count }}件</td>
+                            <td>{{ lt.expense_count }}件
+                                <a href="{{url_for('new_expense', trip_id = lt.id)}}">[追加]</a>
+                            </td>
                             <td>{{ lt.opponent}}</td>
                         </tr>
                     {% endfor %}
