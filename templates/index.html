@@ -10,8 +10,7 @@
     </p>
 
     <form method="get" action="{{ url_for('index') }}">
-        <label for="season">シーズンを選択する</label>
-
+        <h2><label for="season">シーズンを選択する</label></h2>
         <select id="season" name="season">
             <option value="">すべて</option>
 
@@ -116,18 +115,6 @@
     <section class="dashboard-card">
         <h2>カテゴリ別支出</h2>
         {% if category_totals %}
-            <table>
-                <tr>
-                    <th>カテゴリ</th>
-                    <th>合計金額</th>
-                </tr>
-                {% for category_total in category_totals %}
-                    <tr>
-                        <td>{{ category_total.category }}</td>
-                        <td>{{ category_total.total | yen }}</td>
-                    </tr>
-                {% endfor %}
-            </table>
 
             <div class="chart-section">
                 <h3>カテゴリ別支出割合</h3>

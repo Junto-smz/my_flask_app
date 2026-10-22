@@ -346,7 +346,6 @@ def index():
     return render_template(
         "index.html",
         seasons = SEASONS,
-        categories = CATEGORIES,
         future_trips = future_trips,
         latest_trips = latest_trips,
         category_totals=category_totals,
@@ -1041,6 +1040,31 @@ def statistics():
     
     with sqlite3.connect(DATABASE) as conn:
             conn.row_factory = sqlite3.Row
+            
+            category_query = """
+                    SELECT expenses.category, SUM(expenses.amount) AS total
+                    FROM expenses
+                    LEFT JOIN trips ON expenses.trip_id = trips.id
+                    WHERE expenses.user_id = ?
+                """
+                
+            category_params = [session["user_id"]]
+            
+            if selected_season:
+                category_query += " AND trips.season = ?"
+                category_params.append(selected_season)
+                
+            category_query += """
+                GROUP BY expenses.category
+                ORDER BY total DESC
+            """
+            
+    
+            category_totals = conn.execute(
+                category_query,
+                category_params
+            ).fetchall()
+                
             monthly_query ="""
                     SELECT substr(spent_on, 1, 7) AS month, SUM(amount) AS total
                     FROM expenses
@@ -1070,6 +1094,7 @@ def statistics():
         "statistics.html",
         seasons = SEASONS,
         selected_season = selected_season,
+        category_totals = category_totals,
         monthly_totals = monthly_totals,
     )
 
