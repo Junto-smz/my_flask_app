@@ -50,8 +50,8 @@
                         <tr>
                             <th>試合日</th>
                             <th>タイトル</th>
-                            <th>合計金額</th>
                             <th>支出件数</th>
+                            <th>合計金額</th>
                             <th>対戦相手</th>
                         </tr>
                     </thead>
@@ -62,10 +62,10 @@
                                 <td>{{ ft.match_date }}</td>
                                 <td><a href="{{ url_for('trip_detail', trip_id = ft.id) }}">
                                     {{ ft.title }}</a></td>
-                                <td>{{ ft.total_amount | yen }}</td>
                                 <td>{{ ft.expense_count }}件
                                     <a href="{{url_for('new_expense', trip_id = ft.id)}}">[追加]</a>
                                 </td>
+                                <td>{{ ft.total_amount | yen }}</td>
                                 <td>{{ ft.opponent}}</td>
                             </tr>
                         {% endfor %}
@@ -192,11 +192,11 @@
 
                                         const label = context.chart.data.labels[context.dataIndex];
 
-                                        if (percentage < 10){
-                                            return label
-                                                    + "\n"
-                                                    + percentage 
-                                                    + "%";
+                                        if (percentage < 15){
+                                            if (percentage < 10){
+                                                return "";
+                                            }
+                                            return label;
                                         }
 
 
@@ -277,7 +277,7 @@
                                         const label = context.chart.data.labels[context.dataIndex];
 
                                         if (percentage < 10){
-                                            return label;
+                                            return "";
                                         }
 
 
