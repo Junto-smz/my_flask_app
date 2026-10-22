@@ -196,7 +196,10 @@
                                             if (percentage < 10){
                                                 return "";
                                             }
-                                            return label;
+                                            return label
+                                                + "\n"
+                                                + value.toLocaleString()
+                                                + "円";
                                         }
 
 
