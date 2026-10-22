@@ -577,7 +577,8 @@ def trips():
                 trips.opponent,
                 trips.stadium,
                 trips.memo
-            ORDER BY trips.match_date DESC,trips.id DESC
+            ORDER BY total_amount DESC,
+                    trips.id DESC
             """,
             (params),
         ).fetchall()
