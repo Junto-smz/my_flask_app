@@ -8,7 +8,7 @@
         <div class="filter-field">
             <label for="season">シーズンを選択する</label>
 
-            <select id="season" name="season">
+            <select id="season" name="season" onchange="this.form.submit()">
                 <option value="">すべて</option>
 
                 {% for season_option in seasons %}
@@ -22,9 +22,6 @@
             </select>
         </div>
 
-        <div class="filter-actions">
-            <button type="submit">選択</button>
-        </div>
     </form>
 
 
