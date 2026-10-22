@@ -2,7 +2,7 @@
 body {
     font-family: Arial, sans-serif;
     line-height: 1.6;
-    max-width: 900px;
+    max-width: 1440px;
     margin: 0;
     padding: 0 20px;
     background-color: #f7f7f7;
@@ -42,7 +42,7 @@ nav a:hover {
 
 /* メイン領域 */
 main {
-    max-width: 1000px;
+    max-width: 1440px;
     margin: 24px auto;
     padding: 0 16px;
     border-radius: 8px;
@@ -80,7 +80,8 @@ td#total {
 }
 
 .table-wrapper {
-    overflow: auto;
+    max-width: 100%;
+    overflow-x: auto;
 }
 
 /* フォーム・ボタン */
@@ -115,6 +116,50 @@ textarea {
 button {
     padding: 8px 14px;
     cursor: pointer;
+}
+
+/* 絞り込みフォーム */
+.filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px 16px;
+}
+
+.filter-form .filter-field {
+    flex: 1 1 180px;
+    min-width: 0;
+    max-width: 360px;
+    margin-bottom: 0;
+}
+
+.filter-form label {
+    margin-bottom: 4px;
+}
+
+.filter-form input,
+.filter-form select,
+.filter-form button {
+    min-height: 44px;
+    font: inherit;
+}
+
+.filter-form input,
+.filter-form select {
+    max-width: none;
+}
+
+.filter-form .filter-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 0;
+    margin-bottom: 0;
+}
+
+.filter-form button {
+    width: auto;
+    margin-top: 0;
 }
 
 /* メッセージ */
@@ -240,17 +285,61 @@ button {
         margin-top: 8px;
     }
 
+    .filter-form .filter-field {
+        flex-basis: 100%;
+        max-width: none;
+    }
+
+    .filter-form .filter-actions {
+        flex: 1 1 100%;
+    }
+
+    .filter-form .filter-actions button {
+        flex: 1 1 140px;
+    }
+
     table {
-        font-size: 14px;
+        font-size: 15px;
+        line-height: 1.6;
     }
 
     th,
     td {
-        padding: 8px;
+        padding: 10px 12px;
+        white-space: nowrap;
+    }
+
+    td.table-text {
+        min-width: 10em;
+        max-width: 18em;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
+    .detail-table td {
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
+    .detail-table {
+        table-layout: fixed;
+    }
+
+    .detail-table th {
+        width: 6em;
     }
 
     td a {
         display: inline-block;
-        margin-bottom: 6px;
+        margin-bottom: 0;
+    }
+
+    .table-actions a {
+        display: block;
+        width: fit-content;
+        min-height: 44px;
+        padding: 10px 0;
+        margin: 0;
+        box-sizing: border-box;
     }
 }

@@ -5,20 +5,22 @@
 {% block content %}
     <h2>遠征一覧</h2>
 
-    <form method="get" action="{{url_for('trips') }}">
-        <h3><label for="season">シーズンを選択する</label></h3>
-        <select id="season" name="season" onchange="this.form.submit()">
-            <option value="">すべて</option>
+    <form method="get" action="{{url_for('trips') }}" class="filter-form">
+        <div class="filter-field">
+            <label for="season">シーズンを選択する</label>
+            <select id="season" name="season" onchange="this.form.submit()">
+                <option value="">すべて</option>
 
-            {% for season_option in seasons %}
-                <option 
-                    value="{{ season_option }}"
-                    {% if selected_season == season_option %}selected{% endif %}
-                    >
-                    {{ season_option }}
+                {% for season_option in seasons %}
+                    <option
+                        value="{{ season_option }}"
+                        {% if selected_season == season_option %}selected{% endif %}
+                        >
+                        {{ season_option }}
                     </option>
-            {% endfor %}
-        </select>
+                {% endfor %}
+            </select>
+        </div>
     </form>
 
 <p>
@@ -26,22 +28,27 @@
 </p>
 
     {% if trips %}
+    <div class="table-wrapper">
         <table>
             <thead>
                 <tr>
-                    <th>シーズン</th>
-                    <th>試合日</th>
+                    <th>操作</th>
                     <th>遠征名</th>
                     <th>支出合計</th>
                     <th>メモ</th>
-                    <th>操作</th>
+                    <th>試合日</th>
+                    <th>シーズン</th>
                 </tr>
             </thead>
             <tbody>
                 {% for trip in trips %}
                     <tr>
-                        <td>{{ trip.season or "未選択" }}</td>
-                        <td>{{ trip.match_date }}</td>
+                        <td>
+                            <a href="{{ url_for('trip_detail', trip_id = trip.id )}}">詳細</a>
+                            <a href="{{ url_for('new_expense', trip_id = trip.id) }}">追加</a><br>
+                            <a href="{{ url_for('edit_trip', trip_id=trip.id) }}">編集</a>
+                            <a href="{{ url_for('confirm_delete_trip', trip_id = trip.id) }}">削除確認</a>
+                        </td>
                         <td>
                             <a href="{{ url_for('trip_detail', trip_id = trip.id) }}">
                                 {{ trip.title }}
@@ -51,20 +58,14 @@
                             {{ trip.expense_count }}件
                         </td>
                         <td>{{ trip.memo or "" }}</td>
-                        <td>
-                            <a href="{{ url_for('trip_detail', trip_id = trip.id )}}">詳細を見る</a>
-                            /
-                            <a href="{{ url_for('new_expense', trip_id = trip.id) }}">支出追加</a>
-                            /
-                            <a href="{{ url_for('edit_trip', trip_id=trip.id) }}">編集する</a>
-                            /
-                            <a href="{{ url_for('confirm_delete_trip', trip_id = trip.id) }}">削除確認</a>
-                        </td>
+                        <td>{{ trip.match_date }}</td>
+                        <td>{{ trip.season or "未選択" }}</td>
                         
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
+    </div>
     {% else %}
         <p>遠征はまだ登録されていません。</p>
     {% endif %}

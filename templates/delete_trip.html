@@ -7,7 +7,8 @@
 
     <p>以下の遠征を削除しますか？</p>
 
-    <table>
+    <div class="table-wrapper">
+    <table class="detail-table">
         <tr>
             <th>試合日</th>
             <td>{{ trip.match_date }}</td>
@@ -29,6 +30,7 @@
             <td>{{ trip.memo or "" }}</td>
         </tr>
     </table>
+    </div>
     {% if expense_count > 0 %}
         <p class="error">この遠征には{{ expense_count }}件の支出が紐づいているため、削除できません。</p>
         <p>先にこの遠征に紐づく支出を削除するか、別の遠征へ変更してください。</p>

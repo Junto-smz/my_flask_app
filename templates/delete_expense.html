@@ -7,7 +7,8 @@
 
     <p>以下の支出を削除しますか？</p>
 
-    <table>
+    <div class="table-wrapper">
+    <table class="detail-table">
         <tr>
             <th>支出日</th>
             <td>{{ expense.spent_on or "未設定" }}</td>
@@ -29,6 +30,7 @@
             <td>{{ expense.memo or "" }}</td>
         </tr>
     </table>
+    </div>
 
     <form method="post" action="{{ url_for('delete_expense', expense_id=expense.id) }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

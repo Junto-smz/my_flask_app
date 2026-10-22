@@ -4,29 +4,34 @@
 
 {% block content %}
 
-    <form method="get" action="{{ url_for('statistics') }}">
-        <h2><label for="season">シーズンを選択する</label></h2>
+    <form method="get" action="{{ url_for('statistics') }}" class="filter-form">
+        <div class="filter-field">
+            <label for="season">シーズンを選択する</label>
 
-        <select id="season" name="season">
-            <option value="">すべて</option>
+            <select id="season" name="season">
+                <option value="">すべて</option>
 
-            {% for season_option in seasons %}
-                <option 
-                    value="{{ season_option }}"
-                    {% if selected_season == season_option %}selected{% endif %}
-                    >
-                    {{ season_option }}
+                {% for season_option in seasons %}
+                    <option
+                        value="{{ season_option }}"
+                        {% if selected_season == season_option %}selected{% endif %}
+                        >
+                        {{ season_option }}
                     </option>
-            {% endfor %}
-        </select>
+                {% endfor %}
+            </select>
+        </div>
 
-        <button type="submit">選択</button>
+        <div class="filter-actions">
+            <button type="submit">選択</button>
+        </div>
     </form>
 
 
     <section class="dashboard-card">
         <h2>カテゴリ別支出</h2>
         {% if category_totals %}
+        <div class="table-wrapper">
             <table>
                 <tr>
                     <th>カテゴリ</th>
@@ -39,6 +44,7 @@
                     </tr>
                 {% endfor %}
             </table>
+        </div>
 
         {% else %}
             <p>支出はまだ登録されていません。</p>
@@ -49,6 +55,7 @@
     <section class="dashboard-card">
             <h2>月別支出金額</h2>
             {% if monthly_totals %}
+            <div class="table-wrapper">
                 <table>
                     <tr>
                         <th>年月</th>
@@ -61,6 +68,7 @@
                         </tr>
                     {% endfor %}
                 </table>
+            </div>
             {% else %}
                 <p>日付付きの支出はまだ登録されていません。</p>
             {% endif %}

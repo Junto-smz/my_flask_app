@@ -9,20 +9,22 @@
         ことをお勧めします。
     </p>
 
-    <form method="get" action="{{ url_for('index') }}">
-        <h2><label for="season">シーズンを選択する</label></h2>
-        <select id="season" name="season" onchange="this.form.submit()">
-            <option value="">すべて</option>
+    <form method="get" action="{{ url_for('index') }}" class="filter-form">
+        <div class="filter-field">
+            <label for="season">シーズンを選択する</label>
+            <select id="season" name="season" onchange="this.form.submit()">
+                <option value="">すべて</option>
 
-            {% for season_option in seasons %}
-                <option 
-                    value="{{ season_option }}"
-                    {% if selected_season == season_option %}selected{% endif%}
-                    >
-                    {{ season_option }}
+                {% for season_option in seasons %}
+                    <option
+                        value="{{ season_option }}"
+                        {% if selected_season == season_option %}selected{% endif%}
+                        >
+                        {{ season_option }}
                     </option>
-            {% endfor %}
-        </select>
+                {% endfor %}
+            </select>
+        </div>
     </form>
 
     <section class="dashboard-card summary-card">
@@ -48,8 +50,8 @@
                         <tr>
                             <th>試合日</th>
                             <th>タイトル</th>
-                            <th>合計金額</th>
                             <th>支出件数</th>
+                            <th>合計金額</th>
                             <th>対戦相手</th>
                         </tr>
                     </thead>
@@ -60,10 +62,10 @@
                                 <td>{{ ft.match_date }}</td>
                                 <td><a href="{{ url_for('trip_detail', trip_id = ft.id) }}">
                                     {{ ft.title }}</a></td>
-                                <td>{{ ft.total_amount | yen }}</td>
                                 <td>{{ ft.expense_count }}件
                                     <a href="{{url_for('new_expense', trip_id = ft.id)}}">[追加]</a>
                                 </td>
+                                <td>{{ ft.total_amount | yen }}</td>
                                 <td>{{ ft.opponent}}</td>
                             </tr>
                         {% endfor %}
@@ -81,16 +83,17 @@
         {% endif %}
 
         {% if latest_trips %}
-            <form method="get" action="{{ url_for('index') }}" >
+            <form method="get" action="{{ url_for('index') }}" class="filter-form">
                 <input type="hidden" name="season" value="{{ selected_season }}">
-                <label for="latest_limit">表示件数</label>
+                <div class="filter-field">
+                    <label for="latest_limit">表示件数</label>
 
-                <select id="latest_limit" name="latest_limit" onchange="this.form.submit()">
-                    <option value="3" {% if latest_limit == 3 %}selected{% endif %}>３件</option>
-                    <option value="5" {% if latest_limit == 5 %}selected{% endif %}>５件</option>
-                    <option value="10" {% if latest_limit == 10 %}selected{% endif %}>10件</option>
-                    
-                </select>
+                    <select id="latest_limit" name="latest_limit" onchange="this.form.submit()">
+                        <option value="3" {% if latest_limit == 3 %}selected{% endif %}>３件</option>
+                        <option value="5" {% if latest_limit == 5 %}selected{% endif %}>５件</option>
+                        <option value="10" {% if latest_limit == 10 %}selected{% endif %}>10件</option>
+                    </select>
+                </div>
             </form>
 
             <div class="table-wrapper">
@@ -189,11 +192,11 @@
 
                                         const label = context.chart.data.labels[context.dataIndex];
 
-                                        if (percentage < 10){
-                                            return label
-                                                    + "\n"
-                                                    + percentage 
-                                                    + "%";
+                                        if (percentage < 15){
+                                            if (percentage < 10){
+                                                return "";
+                                            }
+                                            return label;
                                         }
 
 
@@ -274,7 +277,7 @@
                                         const label = context.chart.data.labels[context.dataIndex];
 
                                         if (percentage < 10){
-                                            return label;
+                                            return "";
                                         }
 
 
