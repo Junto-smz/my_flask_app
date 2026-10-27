@@ -3,11 +3,6 @@
 {% block title %}トップ{% endblock %}
 
 {% block content %}
-    <p>遠征にかかった費用を記録・管理するアプリです。</p>
-    <p>まだ遠征を１つも登録されていない方は
-        <a href="{{ url_for('new_trip') }}">遠征を登録する</a>
-        ことをお勧めします。
-    </p>
 
     <form method="get" action="{{ url_for('index') }}" class="filter-form">
         <div class="filter-field">
@@ -26,6 +21,11 @@
             </select>
         </div>
     </form>
+
+    <p>まだ遠征を１つも登録されていない方は
+        <a href="{{ url_for('new_trip') }}">遠征を登録する</a>
+        ことをお勧めします。
+    </p>
 
     <section class="dashboard-card summary-card">
         {% if selected_season %}
@@ -132,10 +132,9 @@
     <section class="dashboard-card">
         {% if category_totals or trips %}
             {% if category_totals %}
-                <h2>カテゴリ別支出</h2>
+                <h2>カテゴリ別支出割合</h2>
 
                 <div class="chart-section">
-                    <h3>カテゴリ別支出割合</h3>
 
                     <div class="chart-container">
                         <canvas id="categoryChart"></canvas>

@@ -27,17 +27,22 @@ DATABASE = os.path.join(BASE_DIR, "database","database.db")
 
 CATEGORIES = [
     "交通費",
-    "宿泊費",
-    "チケット代",
     "食費",
+    "チケット代",
+    "宿泊費",
     "グッズ代",
+    "お土産代",
     "その他",
 ]
 
+# シーズン追加時は先頭に新シーズンを追加する
 SEASONS = [
     "2026/27シーズン",
     "百年構想リーグ"
 ]
+
+CURRENT_SEASON = SEASONS[0]
+
 
 def login_required():
     if not session.get("user_id"):
@@ -159,7 +164,12 @@ def login():
                     session["user_id"] = user["id"]
                     session["username"] = user["username"]
                     flash("ログインしました。")
-                    return redirect(url_for("index"))
+                    return redirect(
+                        url_for(
+                        "index",
+                        season=CURRENT_SEASON
+                        )
+                    )
             
     return render_template(
         "login.html",
