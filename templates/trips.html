@@ -54,8 +54,8 @@
                                 {{ trip.title }}
                             </a>
                         </td>
-                        <td id="total">{{ trip.total_amount|yen }} <br> 
-                            {{ trip.expense_count }}件
+                        <td id="total"> {{ trip.expense_count }}件<br> 
+                            {{ trip.total_amount|yen }}
                         </td>
                         <td>{{ trip.memo or "" }}</td>
                         <td>{{ trip.match_date }}</td>
