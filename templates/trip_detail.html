@@ -41,6 +41,17 @@
         </table>
     </div>
 
+
+
+    <h2>この遠征の合計</h2>
+        <p class="total-amount">{{ total_amount | yen }}</p>
+
+        <p class="total-amount">支出件数:　{{ expense_count }}件</p>
+        
+        <p>
+            <a href="{{ url_for('new_expense', trip_id = trip.id) }}">この遠征に支出を追加</a>
+        </p>
+
     <h2>この遠征の一枚</h2>
     {% if trip.photo_filename %}
         <div class="trip-photo">
@@ -127,17 +138,6 @@
             </form>
         </div>
     {% endif %}
-
-
-    <h2>この遠征の合計</h2>
-        <p class="total-amount">{{ total_amount | yen }}</p>
-
-        <p class="total-amount">支出件数:　{{ expense_count }}件</p>
-        
-        <p>
-            <a href="{{ url_for('new_expense', trip_id = trip.id) }}">この遠征に支出を追加</a>
-        </p>
-
 
     {% if category_totals %}
         <h2>カテゴリ別支出割合</h2>
