@@ -52,6 +52,10 @@
                         <td>
                             <div class="trip-title-with-photo">
 
+                                <a href="{{ url_for('trip_detail', trip_id = trip.id) }}">
+                                    {{ trip.title }}
+                                </a>
+                                
                                 {% if trip.photo_filename %}
                                     <img 
                                         src="{{ url_for('static', filename='uploads/trips/' + trip.photo_filename) }}"
@@ -59,10 +63,6 @@
                                         class="trip-thumbnail"
                                     >
                                 {% endif %}
-                                
-                                <a href="{{ url_for('trip_detail', trip_id = trip.id) }}">
-                                    {{ trip.title }}
-                                </a>
                             </div>
                         </td>
                         <td id="total"> {{ trip.expense_count }}件<br> 
