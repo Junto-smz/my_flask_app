@@ -26,7 +26,8 @@ with sqlite3.connect(DATABASE) as conn:
             opponent TEXT NOT NULL,
             stadium TEXT,
             memo TEXT,
-            season TEXT
+            season TEXT,
+            photo_filename TEXT
         )
         """
     )

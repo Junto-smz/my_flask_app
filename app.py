@@ -2,6 +2,8 @@ import os
 
 import sqlite3
 
+import uuid
+
 from flask import Flask, abort, redirect, render_template, request, session, url_for, flash
 
 from flask_wtf import CSRFProtect
@@ -11,6 +13,8 @@ from datetime import date
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from datetime import date
+
+from werkzeug.utils import secure_filename
 
 
 app = Flask(__name__)
@@ -24,6 +28,17 @@ csrf = CSRFProtect(app)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 DATABASE = os.path.join(BASE_DIR, "database","database.db")
+
+UPLOAD_FOLDER = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "static",
+    "uploads",
+    "trips"
+)
+
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", "webp"}
 
 CATEGORIES = [
     "交通費",
@@ -605,7 +620,15 @@ def trip_detail(trip_id):
         conn.row_factory = sqlite3.Row
         trip = conn.execute(
             """
-            SELECT id, title,season, match_date, opponent, stadium, memo
+            SELECT 
+                id,
+                title,
+                season,
+                match_date,
+                opponent,
+                stadium,
+                memo,
+                photo_filename
             FROM trips
             WHERE id = ? AND user_id = ?
             """,
@@ -649,6 +672,135 @@ def trip_detail(trip_id):
         total_amount = total_amount,
         category_totals = category_totals,
         expense_count = expense_count,
+        )
+
+
+@app.route("/trips/<int:trip_id>/photo",methods=["POST"])
+def upload_trip_photo(trip_id):
+    login_check = login_required()
+    if login_check:
+        return login_check
+    
+    with sqlite3.connect(DATABASE) as conn:
+        conn.row_factory = sqlite3.Row
+        
+        trip = conn.execute(
+            """
+            SELECT id, photo_filename
+            FROM trips
+            WHERE id = ? AND user_id = ?
+            """,
+            (trip_id, session["user_id"]),
+        ).fetchone()
+        
+        if trip is None:
+            abort(404)
+            
+    photo = request.files.get("photo")
+    
+    if photo is None or photo.filename == "":
+        flash("画像を選択してください。")
+        return redirect(url_for("trip_detail", trip_id = trip.id))
+
+    original_filename = secure_filename(photo.filename)
+
+    extension = os.path.splitext(original_filename)[1]
+    
+    if extension not in ALLOWED_EXTENSIONS:
+        flash("jpg・jpeg・png・webp形式の画像を選択してください。")
+        return redirect(url_for("trip_detail", trip_id=trip_id))
+    
+    filename = f"{uuid.uuid4().hex}{extension}"
+    
+    photo.save(
+        os.path.join(
+            UPLOAD_FOLDER,
+            filename
+        )
+    )
+
+    old_photo_filename = trip["photo_filename"]
+    with sqlite3.connect(DATABASE) as conn:
+        conn.execute(
+            """
+            UPDATE trips
+            SET photo_filename = ?
+            WHERE id = ? AND user_id = ?
+            """,
+            (
+                filename,
+                trip_id,
+                session["user_id"]
+            ),
+        )
+        
+    if old_photo_filename:
+        old_photo_path = os.path.join(
+            UPLOAD_FOLDER,
+            old_photo_filename
+        )
+        
+        if os.path.exists(old_photo_path):
+            os.remove(old_photo_path)
+            
+    flash("この遠征の一枚を登録しました。")
+
+    return redirect(
+        url_for(
+            "trip_detail",
+            trip_id = trip_id
+        )
+    )
+
+
+@app.route("/trips/<int:trip_id>/photo/delete", methods=["POST"])
+def delete_trip_photo(trip_id):
+    login_check = login_required()
+    if login_check:
+        return login_check
+    
+    with sqlite3.connect(DATABASE) as conn:
+        conn.row_factory = sqlite3.Row
+        
+        trip = conn.execute(
+            """
+            SELECT id, photo_filename
+            FROM trips
+            WHERE id = ? AND user_id = ?
+            """,
+            (trip_id, session["user_id"]),
+        ).fetchone()
+        
+        if trip is None:
+            abort(404)
+        
+        photo_filename = trip["photo_filename"]
+        
+        conn.execute(
+            """
+            UPDATE trips
+            SET photo_filename = NULL
+            WHERE id = ? AND user_id = ?
+            """,
+            (trip_id, session["user_id"]),
+        )
+        
+        if photo_filename:
+            photo_path = os.path.join(
+                UPLOAD_FOLDER,
+                photo_filename
+            )
+            
+            if os.path.exists(photo_path):
+                os.remove(photo_path)
+        
+        flash("写真を削除しました。")
+
+        return redirect(
+            url_for(
+                "trip_detail",
+                trip_id = trip_id
+            )
         )
 
 @app.route("/trips/new", methods=["GET", "POST"])
