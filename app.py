@@ -752,6 +752,57 @@ def upload_trip_photo(trip_id):
         )
     )
 
+
+@app.route("/trips/<int:trip_id>/photo/delete", methods=["POST"])
+def delete_trip_photo(trip_id):
+    login_check = login_required()
+    if login_check:
+        return login_check
+    
+    with sqlite3.connect(DATABASE) as conn:
+        conn.row_factory = sqlite3.Row
+        
+        trip = conn.execute(
+            """
+            SELECT id, photo_filename
+            FROM trips
+            WHERE id = ? AND user_id = ?
+            """,
+            (trip_id, session["user_id"]),
+        ).fetchone()
+        
+        if trip is None:
+            abort(404)
+        
+        photo_filename = trip["photo_filename"]
+        
+        conn.execute(
+            """
+            UPDATE trips
+            SET photo_filename = NULL
+            WHERE id = ? AND user_id = ?
+            """,
+            (trip_id, session["user_id"]),
+        )
+        
+        if photo_filename:
+            photo_path = os.path.join(
+                UPLOAD_FOLDER,
+                photo_filename
+            )
+            
+            if os.path.exists(photo_path):
+                os.remove(photo_path)
+        
+        flash("写真を削除しました。")
+
+        return redirect(
+            url_for(
+                "trip_detail",
+                trip_id = trip_id
+            )
+        )
+
 @app.route("/trips/new", methods=["GET", "POST"])
 def new_trip():
     login_check = login_required()

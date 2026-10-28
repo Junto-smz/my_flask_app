@@ -36,6 +36,9 @@
             </tr>
         </table>
     </div>
+        <p>
+            <a href="{{ url_for('edit_trip', trip_id = trip.id) }}">この遠征を編集する</a>
+        </p>
 
     <h2>この遠征の一枚</h2>
     {% if trip.photo_filename %}
@@ -44,9 +47,55 @@
                 alt="{{trip.title}}の写真"
             >
         </div>
+
+        <div class="trip-photo-actions">
+            <form 
+                method="post"
+                action="{{ url_for('upload_trip_photo', trip_id = trip.id) }}"
+                enctype="multipart/form-data"
+            >
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token() }}"
+                >
+
+                <input
+                    type="file"
+                    id="change-photo"
+                    name="photo"
+                    accept="image/*"
+                    hidden
+                    onchange="this.form.submit()"
+                >
+
+                <button
+                    type="button"
+                    class="button-like"
+                    onclick="this.form.elements.photo.click()"
+                >
+                    写真を変更
+                </button>
+            </form>
+
+            <form
+                method="post"
+                action="{{ url_for('delete_trip_photo', trip_id = trip.id) }}"
+            >
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token() }}"
+                >
+
+                <button type="submit">
+                    写真を削除
+                </button>
+            </form>
+            
+        </div>
     {% else %}
         <p>まだ写真は登録されていません。</p>
-    {% endif %}
     <form
         method="post"
         action="{{ url_for('upload_trip_photo', trip_id = trip.id)}}"
@@ -68,10 +117,8 @@
             写真を登録
         </button>
     </form>
+    {% endif %}
 
-        <p>
-            <a href="{{ url_for('edit_trip', trip_id = trip.id) }}">この遠征を編集する</a>
-        </p>
 
     <h2>この遠征の合計</h2>
         <p class="total-amount">{{ total_amount | yen }}</p>
