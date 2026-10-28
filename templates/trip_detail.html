@@ -38,7 +38,15 @@
     </div>
 
     <h2>この遠征の一枚</h2>
-
+    {% if trip.photo_filename %}
+        <div class="trip-photo">
+            <img src="{{ url_for('static', filename='uploads/trips/' + trip.photo_filename) }}"
+                alt="{{trip.title}}の写真"
+            >
+        </div>
+    {% else %}
+        <p>まだ写真は登録されていません。</p>
+    {% endif %}
     <form
         method="post"
         action="{{ url_for('upload_trip_photo', trip_id = trip.id)}}"

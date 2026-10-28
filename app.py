@@ -2,6 +2,8 @@ import os
 
 import sqlite3
 
+import uuid
+
 from flask import Flask, abort, redirect, render_template, request, session, url_for, flash
 
 from flask_wtf import CSRFProtect
@@ -35,6 +37,7 @@ UPLOAD_FOLDER = os.path.join(
 )
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 
 CATEGORIES = [
     "交通費",
@@ -698,8 +701,12 @@ def upload_trip_photo(trip_id):
         flash("画像を選択してください。")
         return redirect(url_for("trip_detail", trip_id = trip.id))
 
-    filename = secure_filename(photo.filename)
+    original_filename = secure_filename(photo.filename)
 
+    extension = os.path.splitext(original_filename)[1]
+    
+    filename = f"{uuid.uuid4().hex}{extension}"
+    
     photo.save(
         os.path.join(
             UPLOAD_FOLDER,

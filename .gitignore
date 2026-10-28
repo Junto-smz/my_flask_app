@@ -6,3 +6,4 @@ __pycache__/
 database/*.db
 .vscode/
 memo.txt
+static/uploads/*

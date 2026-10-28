@@ -404,3 +404,16 @@ button {
         max-height: 440px;
     }
 }
+
+
+.trip-photo {
+    margin: 16px 0;
+}
+
+.trip-photo img {
+    width: 100%;
+    max-width: 700px;
+    max-height: 450px;
+    object-fit: cover;
+    border-radius: 8px;
+}
