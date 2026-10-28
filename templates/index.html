@@ -60,8 +60,22 @@
                         {% for ft in future_trips %}
                             <tr>
                                 <td>{{ ft.match_date }}</td>
-                                <td><a href="{{ url_for('trip_detail', trip_id = ft.id) }}">
-                                    {{ ft.title }}</a></td>
+                                <td>
+                                    <div class="trip-title-with-photo">
+
+                                        <a href="{{ url_for('trip_detail', trip_id = ft.id) }}">
+                                            {{ ft.title }}
+                                        </a>
+                                        
+                                        {% if ft.photo_filename %}
+                                            <img 
+                                                src="{{ url_for('static', filename='uploads/trips/' + ft.photo_filename) }}"
+                                                alt=""
+                                                class="trip-thumbnail"
+                                            >
+                                        {% endif %}
+                                    </div>
+                                </td>
                                 <td>{{ ft.expense_count }}件
                                     <a href="{{url_for('new_expense', trip_id = ft.id)}}">[追加]</a>
                                 </td>
@@ -112,8 +126,22 @@
                     {% for lt in latest_trips %}
                         <tr>
                             <td>{{ lt.match_date }}</td>
-                            <td><a href="{{ url_for('trip_detail', trip_id = lt.id) }}">
-                                {{ lt.title }}</a></td>
+                            <td>
+                                <div class="trip-title-with-photo">
+
+                                    <a href="{{ url_for('trip_detail', trip_id = lt.id) }}">
+                                        {{ lt.title }}
+                                    </a>
+                                    
+                                    {% if lt.photo_filename %}
+                                        <img 
+                                            src="{{ url_for('static', filename='uploads/trips/' + lt.photo_filename) }}"
+                                            alt=""
+                                            class="trip-thumbnail"
+                                        >
+                                    {% endif %}
+                                </div>
+                            </td>
                             <td>{{ lt.total_amount | yen }}</td>
                             <td>{{ lt.expense_count }}件
                                 <a href="{{url_for('new_expense', trip_id = lt.id)}}">[追加]</a>
