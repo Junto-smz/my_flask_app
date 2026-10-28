@@ -38,6 +38,7 @@ UPLOAD_FOLDER = os.path.join(
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", "webp"}
 
 CATEGORIES = [
     "交通費",
@@ -685,7 +686,7 @@ def upload_trip_photo(trip_id):
         
         trip = conn.execute(
             """
-            SELECT id
+            SELECT id, photo_filename
             FROM trips
             WHERE id = ? AND user_id = ?
             """,
@@ -705,6 +706,10 @@ def upload_trip_photo(trip_id):
 
     extension = os.path.splitext(original_filename)[1]
     
+    if extension not in ALLOWED_EXTENSIONS:
+        flash("jpg・jpeg・png・webp形式の画像を選択してください。")
+        return redirect(url_for("trip_detail", trip_id=trip_id))
+    
     filename = f"{uuid.uuid4().hex}{extension}"
     
     photo.save(
@@ -714,6 +719,7 @@ def upload_trip_photo(trip_id):
         )
     )
 
+    old_photo_filename = trip["photo_filename"]
     with sqlite3.connect(DATABASE) as conn:
         conn.execute(
             """
@@ -728,6 +734,15 @@ def upload_trip_photo(trip_id):
             ),
         )
         
+    if old_photo_filename:
+        old_photo_path = os.path.join(
+            UPLOAD_FOLDER,
+            old_photo_filename
+        )
+        
+        if os.path.exists(old_photo_path):
+            os.remove(old_photo_path)
+            
     flash("この遠征の一枚を登録しました。")
 
     return redirect(
