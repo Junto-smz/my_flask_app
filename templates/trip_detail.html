@@ -8,6 +8,10 @@
     </p>
 
     <h2>遠征詳細</h2>
+        <p>
+            <a href="{{ url_for('edit_trip', trip_id = trip.id) }}">この遠征を編集する</a>
+        </p>
+
     <div class="table-wrapper">
         <table class="detail-table">
             <tr>
@@ -36,9 +40,6 @@
             </tr>
         </table>
     </div>
-        <p>
-            <a href="{{ url_for('edit_trip', trip_id = trip.id) }}">この遠征を編集する</a>
-        </p>
 
     <h2>この遠征の一枚</h2>
     {% if trip.photo_filename %}
@@ -96,27 +97,35 @@
         </div>
     {% else %}
         <p>まだ写真は登録されていません。</p>
-    <form
-        method="post"
-        action="{{ url_for('upload_trip_photo', trip_id = trip.id)}}"
-        enctype="multipart/form-data"
-    >
-        <input
-            type="hidden"
-            name="csrf_token"
-            value="{{ csrf_token() }}"
-        >
+        <div class="trip-photo-actions">
+            <form
+                method="post"
+                action="{{ url_for('upload_trip_photo', trip_id = trip.id)}}"
+                enctype="multipart/form-data"
+            >
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token() }}"
+                >
 
-        <input
-            type="file"
-            name="photo"
-            accept="image/*"
-        >
+                <input
+                    type="file"
+                    name="photo"
+                    accept="image/*"
+                    hidden
+                    onchange="this.form.submit()"
+                >
 
-        <button type="submit">
-            写真を登録
-        </button>
-    </form>
+                <button
+                    type="button"
+                    class="button-like"
+                    onclick="this.form.elements.photo.click()"
+                >
+                    写真を登録
+                </button>
+            </form>
+        </div>
     {% endif %}
 
 
