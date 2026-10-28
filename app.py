@@ -585,6 +585,7 @@ def trips():
                 trips.season,
                 trips.match_date,
                 trips.memo,
+                trips.photo_filename,
                 COALESCE(SUM(expenses.amount), 0) AS total_amount,
                 COUNT(expenses.id) AS expense_count
             FROM trips

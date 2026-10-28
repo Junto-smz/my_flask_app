@@ -50,9 +50,20 @@
                             <a href="{{ url_for('confirm_delete_trip', trip_id = trip.id) }}">削除確認</a>
                         </td>
                         <td>
-                            <a href="{{ url_for('trip_detail', trip_id = trip.id) }}">
-                                {{ trip.title }}
-                            </a>
+                            <div class="trip-title-with-photo">
+
+                                {% if trip.photo_filename %}
+                                    <img 
+                                        src="{{ url_for('static', filename='uploads/trips/' + trip.photo_filename) }}"
+                                        alt=""
+                                        class="trip-thumbnail"
+                                    >
+                                {% endif %}
+                                
+                                <a href="{{ url_for('trip_detail', trip_id = trip.id) }}">
+                                    {{ trip.title }}
+                                </a>
+                            </div>
                         </td>
                         <td id="total"> {{ trip.expense_count }}件<br> 
                             {{ trip.total_amount|yen }}

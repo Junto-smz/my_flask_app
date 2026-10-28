@@ -483,3 +483,17 @@ button {
         width: 100%;
     }
 }
+
+.trip-title-with-photo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.trip-thumbnail {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
