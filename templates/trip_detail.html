@@ -3,290 +3,289 @@
 {% block title %}遠征詳細{% endblock %}
 
 {% block content %}
-    <p>
-        <a href="{{ url_for('trips') }}">←戻る</a>
-    </p>
-
     <h2>遠征詳細</h2>
-        <p>
+    
+        <section class="dashboard-card summary-card">
+            <div class="table-wrapper">
+                <table class="detail-table">
+                    <thead>
+                        <tr>
+                            <th>シーズン</th>
+                            <th>試合日</th>
+                            <th>遠征名</th>
+                            <th>対戦相手</th>
+                            <th>会場</th>
+                            <th>メモ</th>
+                        </tr>
+                    </thead>
+                            
+                    <tbody>
+                            <tr>
+                                <td>{{ trip.season or "" }}</td>
+                                <td>{{ trip.match_date }}</td>
+                                <td>{{ trip.title }}</td>
+                                <td>{{ trip.opponent }}</td>
+                                <td>{{ trip.stadium  or ""}}</td>
+                                <td>{{ trip.memo or ""}}</td>
+                            </tr>
+                    </tbody>
+                </table>
             <a href="{{ url_for('edit_trip', trip_id = trip.id) }}">この遠征を編集する</a>
-        </p>
-
-    <div class="table-wrapper">
-        <table class="detail-table">
-            <tr>
-                <th>シーズン</th>
-                <td>{{ trip.season or ""}}</td>
-            </tr>
-            <tr>
-                <th>試合日</th>
-                <td>{{ trip.match_date }}</td>
-            </tr>
-            <tr>
-                <th>遠征名</th>
-                <td>{{ trip.title }}</td>
-            </tr>
-            <tr>
-                <th>対戦相手</th>
-                <td>{{ trip.opponent }}</td>
-            </tr>
-            <tr>
-                <th>会場</th>
-                <td>{{ trip.stadium }}</td>
-            </tr>
-            <tr>
-                <th>メモ</th>
-                <td>{{trip.memo }}</td>
-            </tr>
-        </table>
-    </div>
-
-
-
-    <h2>この遠征の合計</h2>
-        <p class="total-amount">{{ total_amount | yen }}</p>
-
-        <p class="total-amount">支出件数:　{{ expense_count }}件</p>
-        
-        <p>
-            <a href="{{ url_for('new_expense', trip_id = trip.id) }}">この遠征に支出を追加</a>
-        </p>
-
-    <h2>この遠征の一枚</h2>
-    {% if trip.photo_filename %}
-        <div class="trip-photo">
-            <img src="{{ url_for('static', filename='uploads/trips/' + trip.photo_filename) }}"
-                alt="{{trip.title}}の写真"
-            >
-        </div>
-
-        <div class="trip-photo-actions">
-            <form 
-                method="post"
-                action="{{ url_for('upload_trip_photo', trip_id = trip.id) }}"
-                enctype="multipart/form-data"
-            >
-                <input
-                    type="hidden"
-                    name="csrf_token"
-                    value="{{ csrf_token() }}"
-                >
-
-                <input
-                    type="file"
-                    id="change-photo"
-                    name="photo"
-                    accept="image/*"
-                    hidden
-                    onchange="this.form.submit()"
-                >
-
-                <button
-                    type="button"
-                    class="button-like"
-                    onclick="this.form.elements.photo.click()"
-                >
-                    写真を変更
-                </button>
-            </form>
-
-            <form
-                method="post"
-                action="{{ url_for('delete_trip_photo', trip_id = trip.id) }}"
-            >
-                <input
-                    type="hidden"
-                    name="csrf_token"
-                    value="{{ csrf_token() }}"
-                >
-
-                <button type="submit">
-                    写真を削除
-                </button>
-            </form>
-            
-        </div>
-    {% else %}
-        <p>まだ写真は登録されていません。</p>
-        <div class="trip-photo-actions">
-            <form
-                method="post"
-                action="{{ url_for('upload_trip_photo', trip_id = trip.id)}}"
-                enctype="multipart/form-data"
-            >
-                <input
-                    type="hidden"
-                    name="csrf_token"
-                    value="{{ csrf_token() }}"
-                >
-
-                <input
-                    type="file"
-                    name="photo"
-                    accept="image/*"
-                    hidden
-                    onchange="this.form.submit()"
-                >
-
-                <button
-                    type="button"
-                    class="button-like"
-                    onclick="this.form.elements.photo.click()"
-                >
-                    写真を登録
-                </button>
-            </form>
-        </div>
-    {% endif %}
-
-    {% if category_totals %}
-        <h2>カテゴリ別支出割合</h2>
-            <div class="chart-section">
-
-                <div class="chart-container">
-                    <canvas id="categoryChart"></canvas>
-                </div>
             </div>
+        </section>
 
-            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-            <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
-            <script>
-                    Chart.register(ChartDataLabels);
 
-                const categoryLabels = [
-                    {% for category_total in category_totals %}
-                        {{ category_total.category | tojson}},
-                    {% endfor %}
-                    
-                ];
+        <section class="dashboard-card summary-card">
+            <h2>この遠征の合計</h2>
+                <p class="total-amount"><big>{{ expense_count }}件
+
+                ／{{ total_amount | yen }}</big></p>
                 
-                const categoryAmounts = [
-                    {% for category_total in category_totals %}
-                        {{ category_total.total }},
-                    {% endfor %}
-                ];
+                <p>
+                    <a href="{{ url_for('new_expense', trip_id = trip.id) }}">この遠征に支出を追加</a>
+                </p>
+        </section>
 
-                const ctx = document.getElementById("categoryChart")
+        <section class="dashboard-card summary-card">
+            <h2>この遠征の一枚</h2>
+                {% if trip.photo_filename %}
+                    <div class="trip-photo">
+                        <img src="{{ url_for('static', filename='uploads/trips/' + trip.photo_filename) }}"
+                            alt="{{trip.title}}の写真"
+                        >
+                    </div>
 
-                new Chart(ctx,{
-                    type: "pie",
-                    data: {
-                        labels: categoryLabels,
-                        datasets:[
-                            {
-                                label:"支出金額",
-                                data:categoryAmounts
-                            }
-                        ]
-                    },
-                    options:{
-                        responsive:true,
-                        maintainAspectRatio: true,
-                        plugins: {
-                            datalabels:{
-                                formatter: function(value, context){
-                                    const data = context.chart.data.datasets[0].data;
+                    <div class="trip-photo-actions">
+                        <form 
+                            method="post"
+                            action="{{ url_for('upload_trip_photo', trip_id = trip.id) }}"
+                            enctype="multipart/form-data"
+                        >
+                            <input
+                                type="hidden"
+                                name="csrf_token"
+                                value="{{ csrf_token() }}"
+                            >
 
-                                    const total = data.reduce(
-                                        (sum, amount) => sum + amount,
-                                        0
-                                    );
+                            <input
+                                type="file"
+                                id="change-photo"
+                                name="photo"
+                                accept="image/*"
+                                hidden
+                                onchange="this.form.submit()"
+                            >
 
-                                    const percentage = total === 0
-                                        ? 0
-                                        : (value / total * 100).toFixed(1);
+                            <button
+                                type="button"
+                                class="button-like"
+                                onclick="this.form.elements.photo.click()"
+                            >
+                                写真を変更
+                            </button>
+                        </form>
 
-                                    const label = context.chart.data.labels[context.dataIndex];
+                        <form
+                            method="post"
+                            action="{{ url_for('delete_trip_photo', trip_id = trip.id) }}"
+                        >
+                            <input
+                                type="hidden"
+                                name="csrf_token"
+                                value="{{ csrf_token() }}"
+                            >
 
-                                    if (percentage < 10){
-                                        return label
-                                                + "\n"
+                            <button type="submit">
+                                写真を削除
+                            </button>
+                        </form>
+                        
+                    </div>
+                {% else %}
+                    <p>まだ写真は登録されていません。</p>
+                    <div class="trip-photo-actions">
+                        <form
+                            method="post"
+                            action="{{ url_for('upload_trip_photo', trip_id = trip.id)}}"
+                            enctype="multipart/form-data"
+                        >
+                            <input
+                                type="hidden"
+                                name="csrf_token"
+                                value="{{ csrf_token() }}"
+                            >
+
+                            <input
+                                type="file"
+                                name="photo"
+                                accept="image/*"
+                                hidden
+                                onchange="this.form.submit()"
+                            >
+
+                            <button
+                                type="button"
+                                class="button-like"
+                                onclick="this.form.elements.photo.click()"
+                            >
+                                写真を登録
+                            </button>
+                        </form>
+                    </div>
+                {% endif %}
+        </section>
+
+        <section class="dashboard-card summary-card">
+            <h2>カテゴリ別支出統計</h2>
+                {% if category_totals %}
+                    <div class="chart-section">
+
+                        <div class="chart-container">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+
+                    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+                    <script>
+                            Chart.register(ChartDataLabels);
+
+                        const categoryLabels = [
+                            {% for category_total in category_totals %}
+                                {{ category_total.category | tojson}},
+                            {% endfor %}
+                            
+                        ];
+                        
+                        const categoryAmounts = [
+                            {% for category_total in category_totals %}
+                                {{ category_total.total }},
+                            {% endfor %}
+                        ];
+
+                        const ctx = document.getElementById("categoryChart")
+
+                        new Chart(ctx,{
+                            type: "pie",
+                            data: {
+                                labels: categoryLabels,
+                                datasets:[
+                                    {
+                                        label:"支出金額",
+                                        data:categoryAmounts
+                                    }
+                                ]
+                            },
+                            options:{
+                                responsive:true,
+                                maintainAspectRatio: true,
+                                plugins: {
+                                    datalabels:{
+                                        formatter: function(value, context){
+                                            const data = context.chart.data.datasets[0].data;
+
+                                            const total = data.reduce(
+                                                (sum, amount) => sum + amount,
+                                                0
+                                            );
+
+                                            const percentage = total === 0
+                                                ? 0
+                                                : (value / total * 100).toFixed(1);
+
+                                            const label = context.chart.data.labels[context.dataIndex];
+
+                                            if (percentage < 10){
+                                                return label
+                                                        + "\n"
+                                                        + percentage 
+                                                        + "%";
+                                            }
+
+
+                                            return label
+                                                + "\n" 
+                                                + value.toLocaleString() 
+                                                + "円\n" 
                                                 + percentage 
                                                 + "%";
+                                        },
+                                        font:{
+                                            weight: "bold"
+                                        },
+                                        textAlign: "center"
                                     }
-
-
-                                    return label
-                                        + "\n" 
-                                        + value.toLocaleString() 
-                                        + "円\n" 
-                                        + percentage 
-                                        + "%";
-                                },
-                                font:{
-                                    weight: "bold"
-                                },
-                                textAlign: "center"
+                                }
                             }
-                        }
-                    }
-                });
-            </script>
-        
-        <h2>カテゴリ別合計</h2>
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>カテゴリ</th>
-                        <th>合計金額</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for category_total in category_totals %}
+                        });
+                    </script>
+                
+                <h2>カテゴリ別合計</h2>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                {% for category_total in category_totals %}
+                                    <th>{{ category_total.category }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                {% for category_total in category_totals %}
+                                        <td>{{ category_total.total|yen }}</td>
+                                {% endfor %}
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            {% else %}
+                <p>統計はまだありません。</p>
+            {% endif %}
+        </section>
+
+        <section class="dashboard-card summary-card">
+            <h2>この遠征の支出一覧</h2>
+
+            {% if expenses %}
+            <div class="table-wrapper">
+                <table>
+                    <thead>
                         <tr>
-                            <td>{{ category_total.category }}</td>
-                            <td>{{ category_total.total|yen }}</td>
+                            <th>支出日</th>
+                            <th>カテゴリ</th>
+                            <th>金額</th>
+                            <th>メモ</th>
+                            <th>操作</th>
                         </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    
+                    <tbody>
+                        {% for expense in expenses %}
+                            <tr>
+                                <td>{{expense.spent_on}}</td>
+                                <td>{{expense.category}}</td>
+                                <td>{{expense.amount | yen}}</td>
+                                <td class="table-text">{{expense.memo or ""}}</td>
+                                <td class="table-actions">
+                                    <a href="{{ url_for('edit_expense', expense_id = expense.id, return_trip_id=trip.id) }}">編集</a>
+                                    <a href="{{ url_for('confirm_delete_expense', expense_id = expense.id, return_trip_id=trip.id)}}">削除</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+                <P>この遠征に紐づく支出はまだ登録されていません。</P>
+            {% endif %}
+            <p>
+                <a href="{{ url_for('new_expense', trip_id = trip.id) }}">この遠征に支出を追加</a>
+            </p>
+        </section>
 
-    {% else %}
-        <p>カテゴリ別合計はまだありません。</p>
-    {% endif %}
-
-
-    <h2>この遠征の支出一覧</h2>
-
-    {% if expenses %}
-    <div class="table-wrapper">
-        <table>
-            <thead>
-                <tr>
-                    <th>支出日</th>
-                    <th>カテゴリ</th>
-                    <th>金額</th>
-                    <th>メモ</th>
-                    <th>操作</th>
-                </tr>
-            </thead>
-            
-            <tbody>
-                {% for expense in expenses %}
-                    <tr>
-                        <td>{{expense.spent_on}}</td>
-                        <td>{{expense.category}}</td>
-                        <td>{{expense.amount | yen}}</td>
-                        <td class="table-text">{{expense.memo or ""}}</td>
-                        <td class="table-actions">
-                            <a href="{{ url_for('edit_expense', expense_id = expense.id, return_trip_id=trip.id) }}">編集</a>
-                            <a href="{{ url_for('confirm_delete_expense', expense_id = expense.id, return_trip_id=trip.id)}}">削除</a>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% else %}
-        <P>この遠征に紐づく支出はまだ登録されていません。</P>
-    {% endif %}
-
-    <p>
-            <a href="{{ url_for('new_expense', trip_id = trip.id) }}">この遠征に支出を追加</a>
-    </p>
-    <p>
-        <a href="{{ url_for('trips') }}">遠征一覧へ戻る</a>
-    </p>
+        <p>
+            <a href="{{ url_for('trips') }}">遠征一覧へ戻る</a>
+        </p>
 {% endblock %}
