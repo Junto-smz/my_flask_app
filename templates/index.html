@@ -131,6 +131,9 @@
 
     <section class="dashboard-card">
         {% if category_totals or trips %}
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
             {% if category_totals %}
                 <h2>カテゴリ別支出割合</h2>
 
@@ -141,8 +144,6 @@
                     </div>
                 </div>
 
-                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-                <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
                 <script>
                         Chart.register(ChartDataLabels);
         
@@ -222,11 +223,17 @@
 
             {# ここから遠征別 #}
             {% if trips %}
-                <div class="chart-section">
-                    <h2>遠征別支出割合</h2>
+                <div class="chart-section trip-chart-section">
+                    <div class="trip-chart-heading">
+                        <h2>遠征別支出比較</h2>
+                    </div>
 
-                    <div class="chart-container">
-                        <canvas id="tripChart"></canvas>
+                    <div class="trip-chart-frame">
+                        <div class="trip-chart-scroll">
+                            <div class="chart-container trip-chart-container" style="height: {{ [180, (trips|length * 48 + 56)]|max }}px;">
+                                <canvas id="tripChart" role="img" aria-label="{{ trips|length }}件の遠征の合計支出額を比較する横棒グラフ"></canvas>
+                            </div>
+                        </div>
                     </div>
                 </div>
                     
@@ -246,52 +253,117 @@
                         {% endfor %}
                     ];
 
-                    const ttx = document.getElementById("tripChart")
+                    const tripCanvas = document.getElementById("tripChart");
+                    const formatTripAmount = value => Number(value).toLocaleString("ja-JP") + "円";
+                    const tripAxisFormatter = new Intl.NumberFormat("ja-JP", {
+                        notation: "compact",
+                        maximumFractionDigits: 1
+                    });
+                    const tripContext = tripCanvas.getContext("2d");
+                    tripContext.font = "600 12px Arial, sans-serif";
+                    const tripAmountWidth = Math.ceil(tripAmounts.reduce(
+                        (width, amount) => Math.max(width, tripContext.measureText(formatTripAmount(amount)).width),
+                        0
+                    ));
 
-                    new Chart(ttx,{
-                        type: "pie",
+                    new Chart(tripCanvas,{
+                        type: "bar",
                         data: {
                             labels: tripLabels,
                             datasets:[
                                 {
                                     label:"支出金額",
-                                    data:tripAmounts
+                                    data:tripAmounts,
+                                    backgroundColor: "#3b82f6",
+                                    hoverBackgroundColor: "#1d4ed8",
+                                    borderRadius: 6,
+                                    borderSkipped: false,
+                                    maxBarThickness: 24,
+                                    categoryPercentage: 0.8,
+                                    barPercentage: 0.75
                                 }
                             ]
                         },
                         options:{
+                            indexAxis:"y",
                             responsive:true,
-                            maintainAspectRatio: true,
+                            maintainAspectRatio: false,
+                            layout: {
+                                padding: {top: 8, right: tripAmountWidth + 16, bottom: 4}
+                            },
+                            interaction: {
+                                mode: "index",
+                                axis: "y",
+                                intersect: false
+                            },
                             plugins: {
+                                legend:{
+                                    display:false
+                                },
+                                tooltip: {
+                                    backgroundColor: "#1e293b",
+                                    padding: 12,
+                                    cornerRadius: 8,
+                                    displayColors: false,
+                                    callbacks: {
+                                        title: function(items) {
+                                            const title = Array.from(items[0].label);
+                                            const lineLength = Math.max(8, Math.floor((this.chart.width - 32) / 13));
+                                            const lines = [];
+                                            for (let i = 0; i < title.length; i += lineLength) {
+                                                lines.push(title.slice(i, i + lineLength).join(""));
+                                            }
+                                            return lines;
+                                        },
+                                        label: context => "合計支出：" + formatTripAmount(context.parsed.x)
+                                    }
+                                },
                                 datalabels:{
-                                    formatter: function(value, context){
-                                        const data = context.chart.data.datasets[0].data;
-
-                                        const total = data.reduce(
-                                            (sum, amount) => sum + amount,
-                                            0
-                                        );
-
-                                        const percentage = total === 0
-                                            ? 0
-                                            : (value / total * 100).toFixed(1);
-
-                                        const label = context.chart.data.labels[context.dataIndex];
-
-                                        if (percentage < 10){
-                                            return "";
-                                        }
-
-
-                                        return label
-                                            + "\n" 
-                                            + percentage 
-                                            + "%";
-                                    },
+                                    anchor:"end",
+                                    align:"end",
+                                    offset: 8,
+                                    color: "#1e293b",
+                                    clip: false,
+                                    formatter: formatTripAmount,
                                     font:{
-                                        weight: "bold"
-                                    },
-                                    textAlign: "center"
+                                        family: "Arial, sans-serif",
+                                        size: 12,
+                                        weight: "600"
+                                    }
+                                }
+                            },
+                            scales:{
+                                x:{
+                                    beginAtZero:true,
+                                    border: {display: false},
+                                    grid: {color: "#e2e8f0", drawTicks: false},
+                                    ticks:{
+                                        color: "#64748b",
+                                        font: {size: 11},
+                                        maxTicksLimit: 4,
+                                        maxRotation: 0,
+                                        padding: 8,
+                                        callback:function(value){
+                                            return tripAxisFormatter.format(value) + "円";
+                                        }
+                                    }
+                                },
+                                y: {
+                                    border: {display: false},
+                                    grid: {display: false},
+                                    ticks: {
+                                        autoSkip: false,
+                                        color: "#334155",
+                                        font: {size: 12, weight: "500"},
+                                        padding: 8,
+                                        callback: function(value) {
+                                            const label = Array.from(this.getLabelForValue(value));
+                                            const limit = this.chart.width < 480 ? 6 : 18;
+                                            return label.length > limit
+                                                ? label.slice(0, limit).join("") + "…"
+                                                : label.join("");
+                                        }
+                                    }
                                 }
                             }
                         }
