@@ -34,9 +34,12 @@
             <h2>これまでの全ての遠征</h2>
         {% endif %}
         <p class="total-amount">
-            {{ trip_count.trip_count }}遠征 /
-            <b>合計金額：{{ total_amount | yen }}<br>
-            　　　 平均金額：{{ average_amount | yen }}</b>
+            {{ trip_count.trip_count }}遠征 ／ {{ records.wins }}勝　{{ records.draws }}分　{{ records.losses }}敗　
+            {% if rest_trips %}
+                （スコア未反映:{{ rest_trips}}遠征）
+            {% endif %}
+            <br>
+            <b>合計金額：{{ total_amount | yen }}　平均金額：{{ average_amount | yen }}</b>
         </p>
     </section>
 
@@ -128,7 +131,13 @@
                             <td>{{ lt.match_date }}</td>
                             <td>
                                 <div class="trip-title-with-photo">
-
+                                    {% if lt.result == "勝利" %}
+                                    <span class="result-win">●</span>
+                                    {% elif lt.result == "引き分け" %}
+                                        <span class="result-draw">▲</span>
+                                    {% elif lt.result  == "負け" %}
+                                        <span class="result-loss">●</span>
+                                    {% endif %}
                                     <a href="{{ url_for('trip_detail', trip_id = lt.id) }}">
                                         {{ lt.title }}
                                     </a>

@@ -58,6 +58,9 @@ SEASONS = [
 
 CURRENT_SEASON = SEASONS[0]
 
+today = date.today()
+
+
 
 def login_required():
     if not session.get("user_id"):
@@ -81,6 +84,18 @@ def validate_trip_owner(trip_id):
         ).fetchone()
     
     return trip is not None
+
+def determine_result(my_team_score, opponent_score):
+    if my_team_score is None or opponent_score is None:
+        return "試合前"
+    
+    if my_team_score > opponent_score:
+        return "勝利"
+    
+    if my_team_score < opponent_score:
+        return "負け"
+    
+    return "引き分け"
 
 @app.template_filter("yen")
 def yen_filter(amount):
@@ -233,10 +248,14 @@ def index():
         
         expenses = conn.execute(query,params).fetchall()
         
+        total_amount = 0
+        for expense in expenses:
+            total_amount += expense["amount"]
+        
         trip_count_params =[session["user_id"]]
         
         trip_count_query = """
-            SELECT COUNT(*) AS trip_count
+            SELECT COUNT(trips.id) AS trip_count
             FROM trips
             WHERE user_id = ?
         """
@@ -251,10 +270,33 @@ def index():
             trip_count_params
         ).fetchone()
         
-        total_amount = 0
-        for expense in expenses:
-            total_amount += expense["amount"]
-            
+        
+                
+        records_query = """
+            SELECT 
+                SUM(CASE WHEN result = '勝利' THEN 1 ELSE 0 END) AS wins,
+                SUM(CASE WHEN result = '引き分け' THEN 1 ELSE 0 END) AS draws,
+                SUM(CASE WHEN result = '負け' THEN 1 ELSE 0 END) AS losses
+            FROM trips
+            WHERE user_id = ?
+        """
+        records_params =[session["user_id"]]
+        
+        if selected_season:
+            records_query += " AND trips.season = ?"
+            records_params.append(selected_season)
+        
+        
+        records = conn.execute(
+            records_query,
+            records_params
+        ).fetchone()
+    
+        rest_trips = trip_count["trip_count"] - (
+            (records["wins"] or 0)
+            +(records["draws"] or 0)
+            +(records["losses"] or 0)
+        )
         
         if int(trip_count["trip_count"]) != 0:
             average_amount = total_amount // int(trip_count["trip_count"])
@@ -262,7 +304,6 @@ def index():
             average_amount = 0
             
                 
-        today = date.today()
         future_trip_query = """
                     SELECT 
                         trips.id,
@@ -317,6 +358,7 @@ def index():
                 trips.opponent,
                 trips.stadium,
                 trips.photo_filename,
+                trips.result,
                 COALESCE(SUM(expenses.amount), 0) AS total_amount,
                 COUNT(expenses.id) AS expense_count
                 FROM trips
@@ -409,15 +451,17 @@ def index():
     return render_template(
         "index.html",
         seasons = SEASONS,
+        trip_count = trip_count,
+        records = records,
+        rest_trips = rest_trips,
+        total_amount=total_amount,
+        average_amount = average_amount,
         future_trips = future_trips,
         latest_limit = latest_limit,
         latest_trips = latest_trips,
         category_totals=category_totals,
         selected_season = selected_season,
-        trip_count = trip_count,
-        total_amount=total_amount,
-        average_amount = average_amount,
-        trips = trips
+        trips = trips,
     )
 
 
@@ -588,6 +632,7 @@ def trips():
                 trips.match_date,
                 trips.memo,
                 trips.photo_filename,
+                trips.result,
                 COALESCE(SUM(expenses.amount), 0) AS total_amount,
                 COUNT(expenses.id) AS expense_count
             FROM trips
@@ -631,7 +676,10 @@ def trip_detail(trip_id):
                 opponent,
                 stadium,
                 memo,
-                photo_filename
+                photo_filename,
+                my_team_score,
+                opponent_score,
+                result
             FROM trips
             WHERE id = ? AND user_id = ?
             """,
@@ -675,6 +723,7 @@ def trip_detail(trip_id):
         total_amount = total_amount,
         category_totals = category_totals,
         expense_count = expense_count,
+        today = str(today),
         )
 
 
@@ -872,7 +921,7 @@ def edit_trip(trip_id):
         conn.row_factory = sqlite3.Row
         trip = conn.execute(
             """
-            SELECT id, title, season, match_date, opponent, stadium, memo
+            SELECT id, title, season, match_date, opponent, stadium, memo, my_team_score, opponent_score
             FROM trips
             WHERE id = ? AND user_id = ?
             """,
@@ -897,7 +946,11 @@ def edit_trip(trip_id):
         stadium = request.form["stadium"].strip()
         memo = request.form["memo"].strip()
         season = request.form["season"].strip()
+        my_team_score_text = request.form.get("my_team_score","").strip()
+        opponent_score_text = request.form.get("opponent_score","").strip()
 
+        
+        
         if title == "":
             error = "遠征名を入力してください。"
         elif match_date == "":
@@ -906,19 +959,59 @@ def edit_trip(trip_id):
             error = "対戦相手を入力してください。"
         elif season not in SEASONS:
             error = "正しいシーズンを入力してください。"
+        elif (my_team_score_text and not opponent_score_text) or (opponent_score_text and not my_team_score_text):
+            error = "スコアは両方入力してください。"
         else:
-            with sqlite3.connect(DATABASE) as conn:
-                conn.execute(
-                    """
-                    UPDATE trips
-                    SET title = ?,season = ?, match_date = ?, opponent = ?, stadium = ?, memo = ?
-                    WHERE id = ? AND user_id = ?
-                    """,
-                    (title, season, match_date, opponent, stadium, memo, trip_id, session["user_id"]),
+            my_team_score = (
+                int(my_team_score_text)
+                if my_team_score_text 
+                else None
                 )
-            
-            flash("遠征を更新しました。")
-            return redirect(url_for("trips"))
+            opponent_score = (
+                int(opponent_score_text)
+                if opponent_score_text
+                else None
+                )
+            if (my_team_score is not None 
+                and opponent_score is not None
+                and (my_team_score < 0 or opponent_score < 0)):
+                error = "0以上の数値を入力してください"
+            else:
+                result = determine_result(my_team_score, opponent_score)
+                
+                with sqlite3.connect(DATABASE) as conn:
+                    conn.execute(
+                        """
+                        UPDATE trips
+                        SET 
+                            title = ?,
+                            season = ?,
+                            match_date = ?,
+                            opponent = ?,
+                            stadium = ?,
+                            memo = ?,
+                            my_team_score = ?,
+                            opponent_score = ?,
+                            result = ?
+                        WHERE id = ? AND user_id = ?
+                        """,
+                        (
+                        title, 
+                        season, 
+                        match_date,
+                        opponent,
+                        stadium,
+                        memo,
+                        my_team_score,
+                        opponent_score,
+                        result,
+                        trip_id,
+                        session["user_id"],
+                        ),
+                    )
+                
+                flash("遠征を更新しました。")
+                return redirect(url_for("trips"))
         
     return render_template(
         "edit_trip.html",
