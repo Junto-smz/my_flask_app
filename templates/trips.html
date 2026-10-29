@@ -46,7 +46,13 @@
                         <td>{{ trip.season or "未選択" }}</td>
                         <td>
                             <div class="trip-title-with-photo">
-
+                                {% if trip.result == "勝利" %}
+                                    <span class="result-win">●</span>
+                                {% elif trip.result == "引き分け" %}
+                                    <span class="result-draw">▲</span>
+                                {% elif trip.result  == "負け" %}
+                                    <span class="result-loss">●</span>
+                                {% endif %}
                                 <a href="{{ url_for('trip_detail', trip_id = trip.id) }}">
                                     {{ trip.title }}
                                 </a>
@@ -63,7 +69,6 @@
                         <td id="total"> {{ trip.expense_count }}件<br> 
                             {{ trip.total_amount|yen }}
                         </td>
-                        {# TODO将来的にメモを廃止してスコアに変更 #}
                         <td>{{ trip.memo or "" }}</td>
                         <td>{{ trip.match_date }}</td>
                         <td>

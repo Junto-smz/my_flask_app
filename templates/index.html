@@ -131,7 +131,13 @@
                             <td>{{ lt.match_date }}</td>
                             <td>
                                 <div class="trip-title-with-photo">
-
+                                    {% if lt.result == "勝利" %}
+                                    <span class="result-win">●</span>
+                                    {% elif lt.result == "引き分け" %}
+                                        <span class="result-draw">▲</span>
+                                    {% elif lt.result  == "負け" %}
+                                        <span class="result-loss">●</span>
+                                    {% endif %}
                                     <a href="{{ url_for('trip_detail', trip_id = lt.id) }}">
                                         {{ lt.title }}
                                     </a>

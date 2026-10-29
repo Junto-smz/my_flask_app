@@ -497,3 +497,20 @@ button {
     border-radius: 6px;
     flex-shrink: 0;
 }
+
+.result-win{
+    color: green;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.result-draw{
+    color: gray;
+    font-weight: bold;
+}
+
+.result-loss{
+    color: red;
+    font-weight: bold;
+    font-size: 1.2rem;
+}

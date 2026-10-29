@@ -358,6 +358,7 @@ def index():
                 trips.opponent,
                 trips.stadium,
                 trips.photo_filename,
+                trips.result,
                 COALESCE(SUM(expenses.amount), 0) AS total_amount,
                 COUNT(expenses.id) AS expense_count
                 FROM trips
@@ -631,6 +632,7 @@ def trips():
                 trips.match_date,
                 trips.memo,
                 trips.photo_filename,
+                trips.result,
                 COALESCE(SUM(expenses.amount), 0) AS total_amount,
                 COUNT(expenses.id) AS expense_count
             FROM trips
