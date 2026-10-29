@@ -82,6 +82,18 @@ def validate_trip_owner(trip_id):
     
     return trip is not None
 
+def determine_result(my_team_score, opponent_score):
+    if my_team_score is None or opponent_score is None:
+        return "試合前"
+    
+    if my_team_score > opponent_score:
+        return "勝利"
+    
+    if my_team_score < opponent_score:
+        return "負け"
+    
+    return "引き分け"
+
 @app.template_filter("yen")
 def yen_filter(amount):
     return f'{amount:,}円'

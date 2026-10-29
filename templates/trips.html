@@ -32,23 +32,18 @@
         <table>
             <thead>
                 <tr>
-                    <th>操作</th>
+                    <th>シーズン</th>
                     <th>遠征名</th>
                     <th>支出合計</th>
                     <th>メモ</th>
                     <th>試合日</th>
-                    <th>シーズン</th>
+                    <th>操作</th>
                 </tr>
             </thead>
             <tbody>
                 {% for trip in trips %}
                     <tr>
-                        <td>
-                            <a href="{{ url_for('trip_detail', trip_id = trip.id )}}">詳細</a>
-                            <a href="{{ url_for('new_expense', trip_id = trip.id) }}">支出追加</a><br>
-                            <a href="{{ url_for('edit_trip', trip_id=trip.id) }}">編集</a>
-                            <a href="{{ url_for('confirm_delete_trip', trip_id = trip.id) }}">削除確認</a>
-                        </td>
+                        <td>{{ trip.season or "未選択" }}</td>
                         <td>
                             <div class="trip-title-with-photo">
 
@@ -68,9 +63,15 @@
                         <td id="total"> {{ trip.expense_count }}件<br> 
                             {{ trip.total_amount|yen }}
                         </td>
+                        {# TODO将来的にメモを廃止してスコアに変更 #}
                         <td>{{ trip.memo or "" }}</td>
                         <td>{{ trip.match_date }}</td>
-                        <td>{{ trip.season or "未選択" }}</td>
+                        <td>
+                            <a href="{{ url_for('trip_detail', trip_id = trip.id )}}">詳細</a>
+                            <a href="{{ url_for('new_expense', trip_id = trip.id) }}">支出追加</a><br>
+                            <a href="{{ url_for('edit_trip', trip_id=trip.id) }}">編集</a>
+                            <a href="{{ url_for('confirm_delete_trip', trip_id = trip.id) }}">削除確認</a>
+                        </td>
                         
                     </tr>
                 {% endfor %}
