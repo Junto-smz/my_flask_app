@@ -248,10 +248,14 @@ def index():
         
         expenses = conn.execute(query,params).fetchall()
         
+        total_amount = 0
+        for expense in expenses:
+            total_amount += expense["amount"]
+        
         trip_count_params =[session["user_id"]]
         
         trip_count_query = """
-            SELECT COUNT(*) AS trip_count
+            SELECT COUNT(trips.id) AS trip_count
             FROM trips
             WHERE user_id = ?
         """
@@ -266,10 +270,33 @@ def index():
             trip_count_params
         ).fetchone()
         
-        total_amount = 0
-        for expense in expenses:
-            total_amount += expense["amount"]
-            
+        
+                
+        records_query = """
+            SELECT 
+                SUM(CASE WHEN result = '勝利' THEN 1 ELSE 0 END) AS wins,
+                SUM(CASE WHEN result = '引き分け' THEN 1 ELSE 0 END) AS draws,
+                SUM(CASE WHEN result = '負け' THEN 1 ELSE 0 END) AS losses
+            FROM trips
+            WHERE user_id = ?
+        """
+        records_params =[session["user_id"]]
+        
+        if selected_season:
+            records_query += " AND trips.season = ?"
+            records_params.append(selected_season)
+        
+        
+        records = conn.execute(
+            records_query,
+            records_params
+        ).fetchone()
+    
+        rest_trips = trip_count["trip_count"] - (
+            (records["wins"] or 0)
+            +(records["draws"] or 0)
+            +(records["losses"] or 0)
+        )
         
         if int(trip_count["trip_count"]) != 0:
             average_amount = total_amount // int(trip_count["trip_count"])
@@ -423,15 +450,17 @@ def index():
     return render_template(
         "index.html",
         seasons = SEASONS,
+        trip_count = trip_count,
+        records = records,
+        rest_trips = rest_trips,
+        total_amount=total_amount,
+        average_amount = average_amount,
         future_trips = future_trips,
         latest_limit = latest_limit,
         latest_trips = latest_trips,
         category_totals=category_totals,
         selected_season = selected_season,
-        trip_count = trip_count,
-        total_amount=total_amount,
-        average_amount = average_amount,
-        trips = trips
+        trips = trips,
     )
 
 

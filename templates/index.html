@@ -34,9 +34,12 @@
             <h2>これまでの全ての遠征</h2>
         {% endif %}
         <p class="total-amount">
-            {{ trip_count.trip_count }}遠征 /
-            <b>合計金額：{{ total_amount | yen }}<br>
-            　　　 平均金額：{{ average_amount | yen }}</b>
+            {{ trip_count.trip_count }}遠征 ／ {{ records.wins }}勝　{{ records.draws }}分　{{ records.losses }}敗　
+            {% if rest_trips %}
+                （スコア未反映:{{ rest_trips}}遠征）
+            {% endif %}
+            <br>
+            <b>合計金額：{{ total_amount | yen }}　平均金額：{{ average_amount | yen }}</b>
         </p>
     </section>
 

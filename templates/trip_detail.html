@@ -9,12 +9,12 @@
         <div>
             {% if trip.my_team_score is not none and trip.opponent_score is not none %}
                 <p>
-                    スコア: {{ trip.my_team_score }} - {{ trip.opponent_score }}
+                    スコア： {{ trip.my_team_score }} - {{ trip.opponent_score }}
                     ／ {{ trip.result }}
                 </p>
 
             {% elif today < trip.match_date %}
-                <p>試合前</p>
+                <p>スコア：試合前</p>
 
             {% else %}
                 <p>
