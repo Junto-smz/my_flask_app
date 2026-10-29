@@ -6,6 +6,25 @@
     <h2>遠征詳細</h2>
     
         <section class="dashboard-card summary-card">
+        <div>
+            {% if trip.my_team_score is not none and trip.opponent_score is not none %}
+                <p>
+                    スコア: {{ trip.my_team_score }} - {{ trip.opponent_score }}
+                    ／ {{ trip.result }}
+                </p>
+
+            {% elif today < trip.match_date %}
+                <p>試合前</p>
+
+            {% else %}
+                <p>
+                    <a href="{{ url_for('edit_trip', trip_id=trip.id) }}">
+                        スコア未登録
+                    </a>
+                </p>
+            {% endif %}
+        </div>
+
             <div class="table-wrapper">
                 <table class="detail-table">
                     <thead>

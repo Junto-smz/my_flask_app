@@ -58,6 +58,9 @@ SEASONS = [
 
 CURRENT_SEASON = SEASONS[0]
 
+today = date.today()
+
+
 
 def login_required():
     if not session.get("user_id"):
@@ -274,7 +277,6 @@ def index():
             average_amount = 0
             
                 
-        today = date.today()
         future_trip_query = """
                     SELECT 
                         trips.id,
@@ -643,7 +645,10 @@ def trip_detail(trip_id):
                 opponent,
                 stadium,
                 memo,
-                photo_filename
+                photo_filename,
+                my_team_score,
+                opponent_score,
+                result
             FROM trips
             WHERE id = ? AND user_id = ?
             """,
@@ -687,6 +692,7 @@ def trip_detail(trip_id):
         total_amount = total_amount,
         category_totals = category_totals,
         expense_count = expense_count,
+        today = str(today),
         )
 
 
@@ -884,7 +890,7 @@ def edit_trip(trip_id):
         conn.row_factory = sqlite3.Row
         trip = conn.execute(
             """
-            SELECT id, title, season, match_date, opponent, stadium, memo
+            SELECT id, title, season, match_date, opponent, stadium, memo, my_team_score, opponent_score
             FROM trips
             WHERE id = ? AND user_id = ?
             """,
@@ -909,7 +915,11 @@ def edit_trip(trip_id):
         stadium = request.form["stadium"].strip()
         memo = request.form["memo"].strip()
         season = request.form["season"].strip()
+        my_team_score_text = request.form.get("my_team_score","").strip()
+        opponent_score_text = request.form.get("opponent_score","").strip()
 
+        
+        
         if title == "":
             error = "遠征名を入力してください。"
         elif match_date == "":
@@ -918,19 +928,59 @@ def edit_trip(trip_id):
             error = "対戦相手を入力してください。"
         elif season not in SEASONS:
             error = "正しいシーズンを入力してください。"
+        elif (my_team_score_text and not opponent_score_text) or (opponent_score_text and not my_team_score_text):
+            error = "スコアは両方入力してください。"
         else:
-            with sqlite3.connect(DATABASE) as conn:
-                conn.execute(
-                    """
-                    UPDATE trips
-                    SET title = ?,season = ?, match_date = ?, opponent = ?, stadium = ?, memo = ?
-                    WHERE id = ? AND user_id = ?
-                    """,
-                    (title, season, match_date, opponent, stadium, memo, trip_id, session["user_id"]),
+            my_team_score = (
+                int(my_team_score_text)
+                if my_team_score_text 
+                else None
                 )
-            
-            flash("遠征を更新しました。")
-            return redirect(url_for("trips"))
+            opponent_score = (
+                int(opponent_score_text)
+                if opponent_score_text
+                else None
+                )
+            if (my_team_score is not None 
+                and opponent_score is not None
+                and (my_team_score < 0 or opponent_score < 0)):
+                error = "0以上の数値を入力してください"
+            else:
+                result = determine_result(my_team_score, opponent_score)
+                
+                with sqlite3.connect(DATABASE) as conn:
+                    conn.execute(
+                        """
+                        UPDATE trips
+                        SET 
+                            title = ?,
+                            season = ?,
+                            match_date = ?,
+                            opponent = ?,
+                            stadium = ?,
+                            memo = ?,
+                            my_team_score = ?,
+                            opponent_score = ?,
+                            result = ?
+                        WHERE id = ? AND user_id = ?
+                        """,
+                        (
+                        title, 
+                        season, 
+                        match_date,
+                        opponent,
+                        stadium,
+                        memo,
+                        my_team_score,
+                        opponent_score,
+                        result,
+                        trip_id,
+                        session["user_id"],
+                        ),
+                    )
+                
+                flash("遠征を更新しました。")
+                return redirect(url_for("trips"))
         
     return render_template(
         "edit_trip.html",
