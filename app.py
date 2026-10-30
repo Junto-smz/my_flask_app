@@ -38,7 +38,7 @@ UPLOAD_FOLDER = os.path.join(
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", "webp"}
+ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 
 CATEGORIES = [
     "交通費",
@@ -57,9 +57,6 @@ SEASONS = [
 ]
 
 CURRENT_SEASON = SEASONS[0]
-
-today = date.today()
-
 
 
 def login_required():
@@ -222,6 +219,8 @@ def index():
         return login_check
     selected_season = request.args.get("season", "").strip()
     latest_limit = request.args.get("latest_limit","3")
+    
+    today = date.today()
     
     if latest_limit not in ["3","5","10"]:
         latest_limit = "3"
@@ -437,6 +436,7 @@ def index():
             
         trips_query += """
             GROUP BY 
+                trips.id,
                 trips.title
             ORDER BY 
                 total_amount DESC, 
@@ -663,6 +663,8 @@ def trip_detail(trip_id):
     login_check = login_required()
     if login_check:
         return login_check
+    
+    today = date.today()
     
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
@@ -1072,7 +1074,10 @@ def delete_trip(trip_id):
     with sqlite3.connect(DATABASE) as conn:
         conn.row_factory = sqlite3.Row
         trip = conn.execute(
-            """SELECT id
+            """
+            SELECT 
+                id,
+                photo_filename
             FROM trips
             WHERE id = ? AND user_id = ?
             """,
@@ -1102,6 +1107,16 @@ def delete_trip(trip_id):
             """,
             (trip_id, session["user_id"]),
         )
+        
+        if trip and trip["photo_filename"]:
+            photo_path= os.path.join(
+                UPLOAD_FOLDER,
+                trip["photo_filename"]
+            )
+        
+        if os.path.exists(photo_path):
+            os.remove(photo_path)
+            
     flash("遠征を削除しました。")
     return redirect(url_for("trips"))
         
