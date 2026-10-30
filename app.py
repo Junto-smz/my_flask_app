@@ -940,6 +940,12 @@ def edit_trip(trip_id):
     stadium = trip["stadium"] or ""
     memo = trip["memo"] or ""
     season = trip["season"] or ""
+    my_team_score_text = (
+        str(trip["my_team_score"]) if trip["my_team_score"] is not None else ""
+    )
+    opponent_score_text = (
+        str(trip["opponent_score"]) if trip["opponent_score"] is not None else ""
+    )
     
     if request.method == "POST":
         title = request.form["title"].strip()
@@ -983,7 +989,7 @@ def edit_trip(trip_id):
                     and opponent_score is not None
                     and (my_team_score < 0 or opponent_score < 0)):
                     error = "0以上の数値を入力してください"
-            else:
+            if not error:
                 result = determine_result(my_team_score, opponent_score)
                 
                 with sqlite3.connect(DATABASE) as conn:
@@ -1023,6 +1029,8 @@ def edit_trip(trip_id):
     return render_template(
         "edit_trip.html",
         trip=trip,
+        my_team_score_text=my_team_score_text,
+        opponent_score_text=opponent_score_text,
         error=error,
         title=title,
         match_date=match_date,
