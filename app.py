@@ -964,20 +964,25 @@ def edit_trip(trip_id):
         elif (my_team_score_text and not opponent_score_text) or (opponent_score_text and not my_team_score_text):
             error = "スコアは両方入力してください。"
         else:
-            my_team_score = (
-                int(my_team_score_text)
-                if my_team_score_text 
-                else None
-                )
-            opponent_score = (
-                int(opponent_score_text)
-                if opponent_score_text
-                else None
-                )
-            if (my_team_score is not None 
-                and opponent_score is not None
-                and (my_team_score < 0 or opponent_score < 0)):
-                error = "0以上の数値を入力してください"
+            try:
+                my_team_score = (
+                    int(my_team_score_text)
+                    if my_team_score_text 
+                    else None
+                    )
+                opponent_score = (
+                    int(opponent_score_text)
+                    if opponent_score_text
+                    else None
+                    )
+            except ValueError:
+                error = "スコアは0以上の整数で入力してください"
+            
+            if not error:
+                if (my_team_score is not None 
+                    and opponent_score is not None
+                    and (my_team_score < 0 or opponent_score < 0)):
+                    error = "0以上の数値を入力してください"
             else:
                 result = determine_result(my_team_score, opponent_score)
                 
