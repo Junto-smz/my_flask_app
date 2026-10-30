@@ -1119,8 +1119,8 @@ def delete_trip(trip_id):
                 trip["photo_filename"]
             )
         
-        if os.path.exists(photo_path):
-            os.remove(photo_path)
+            if os.path.exists(photo_path):
+                os.remove(photo_path)
             
     flash("遠征を削除しました。")
     return redirect(url_for("trips"))
